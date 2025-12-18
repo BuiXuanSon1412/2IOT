@@ -12,7 +12,7 @@ or install node_modules.zip file here: [https://drive.google.com/drive/u/0/folde
 
 Run Frontend:
 ```shell
-  npm run start
+  npm run dev
 ```
 
 3.Backend setup
