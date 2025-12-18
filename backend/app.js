@@ -47,7 +47,7 @@ client.on('connect', () => {
 client.on('message', (topic, message) => {
   if (topic === TOPIC_SENSOR) {
     console.log(`Received message on '${TOPIC_SENSOR}': ${message.toString()}`);
-    // Here you can add code to process/store the sensor data
+    // TODO
   }
 });
 
