@@ -1,26 +1,27 @@
 import { Thermometer, Wind, Lightbulb, Lock } from 'lucide-react';
 
 export const mockFloors = [
+
   {
     name: 'Ground Floor',
     rooms: [
       {
-        name: 'Living Room',
-        x: 50,
-        y: 50,
+        name: 'Living / Dining',
+        x: 60,
+        y: 40,
         width: 300,
         height: 200,
         devices: [
           { icon: '🌡️', status: 'online' },
           { icon: '💡', status: 'online' },
-          { icon: '💨', status: 'offline' },
+          { icon: '💨', status: 'online' },
         ],
       },
       {
         name: 'Kitchen',
-        x: 400,
-        y: 50,
-        width: 250,
+        x: 360,
+        y: 40,
+        width: 180,
         height: 200,
         devices: [
           { icon: '🌡️', status: 'online' },
@@ -28,35 +29,39 @@ export const mockFloors = [
         ],
       },
       {
-        name: 'Dining Room',
-        x: 50,
-        y: 300,
-        width: 300,
-        height: 200,
-        devices: [{ icon: '💡', status: 'online' }],
-      },
-      {
         name: 'Bathroom',
-        x: 400,
-        y: 300,
-        width: 150,
-        height: 200,
+        x: 60,
+        y: 240,
+        width: 180,
+        height: 120,
         devices: [
           { icon: '💧', status: 'online' },
           { icon: '🌡️', status: 'online' },
         ],
       },
+      {
+        name: 'Garage',
+        x: 240,
+        y: 240,
+        width: 300,
+        height: 120,
+        devices: [
+          { icon: '💡', status: 'online' },
+          { icon: '🔒', status: 'online' },
+        ],
+      },
     ],
   },
+
   {
     name: 'First Floor',
     rooms: [
       {
         name: 'Master Bedroom',
-        x: 50,
-        y: 50,
-        width: 350,
-        height: 250,
+        x: 60,
+        y: 40,
+        width: 300,
+        height: 160,
         devices: [
           { icon: '🌡️', status: 'online' },
           { icon: '💡', status: 'online' },
@@ -64,11 +69,11 @@ export const mockFloors = [
         ],
       },
       {
-        name: 'Bedroom 2',
-        x: 450,
-        y: 50,
-        width: 250,
-        height: 250,
+        name: 'Bedroom',
+        x: 360,
+        y: 40,
+        width: 180,
+        height: 160,
         devices: [
           { icon: '🌡️', status: 'online' },
           { icon: '💡', status: 'offline' },
@@ -76,17 +81,28 @@ export const mockFloors = [
       },
       {
         name: 'Office',
-        x: 50,
-        y: 350,
+        x: 60,
+        y: 200,
         width: 300,
-        height: 150,
+        height: 160,
         devices: [
           { icon: '💡', status: 'online' },
           { icon: '💨', status: 'online' },
         ],
       },
+      {
+        name: 'Bathroom',
+        x: 360,
+        y: 200,
+        width: 180,
+        height: 160,
+        devices: [
+          { icon: '💧', status: 'online' },
+          { icon: '💡', status: 'online' },
+        ],
+      },
     ],
-  },
+  }
 ];
 
 export const mockDevices = [
