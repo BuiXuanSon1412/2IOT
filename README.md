@@ -25,11 +25,3 @@ Run Backend:
 ```shell
   npm run server
 ```
-
-4. Commit Convention
-``` shell
-  git add .
-  git reset backend/node_modules
-  git reset frontend/node_modules
-```
-This will reduce the load when pushing code and fetching code
