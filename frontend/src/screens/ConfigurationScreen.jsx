@@ -30,7 +30,7 @@ export default function ConfigurationScreen({ devices }) {
         <div className="grid grid-cols-3 gap-6">
           <div className="col-span-1 space-y-2">
             <h3 className="font-semibold text-gray-900 mb-3">All Devices</h3>
-            {devices.map((device) => {
+            {Object.values(devices).map((device) => {
               const Icon = device.iconComponent;
               return (
                 <button

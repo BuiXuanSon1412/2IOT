@@ -6,7 +6,7 @@ import ConfigurationScreen from './screens/ConfigurationScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import AnalyticsScreen from './screens/AnalyticsScreen';
 import Sidebar from './components/Sidebar';
-import { mockFloors, mockDevices } from './data/mockData';
+import { mockFloors, mockDeviceDetails } from './data/mockData';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -24,8 +24,8 @@ function App() {
         onLogout={() => setIsAuthenticated(false)}
       />
       <main className="flex-1 overflow-auto">
-        {currentScreen === 'monitor' && <MonitorScreen devices={mockDevices} floors={mockFloors} />}
-        {currentScreen === 'configuration' && <ConfigurationScreen devices={mockDevices} />}
+        {currentScreen === 'monitor' && <MonitorScreen devices={mockDeviceDetails} floors={mockFloors} />}
+        {currentScreen === 'configuration' && <ConfigurationScreen devices={mockDeviceDetails} />}
         {currentScreen === 'analytics' && <AnalyticsScreen />}
         {currentScreen === 'settings' && <SettingsScreen />}
       </main>
