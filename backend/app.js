@@ -1,27 +1,29 @@
-const express = require('express');
-const path = require('path')
-const cors = require('cors');
-const mqtt = require('mqtt');
-const { connectDB } = require('./config/db');
-const { initAutomationEngine } = require('./services/automation-rules/automation-rule.service');
-require("dotenv").config();
+import express from "express";
+import cors from "cors";
+import mqtt from "mqtt";
+import authRoutes from "./routes/auth.routes.js";
+import { connectDB } from "./config/db.js";
+import { initAutomationEngine } from "./services/automation-rules/automation-rule.service.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors({
-  origin: process.env.CORS
-}))
+app.use(cors({ origin: process.env.CORS }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// app.use("api/auth", authRoutes);
-// app.use("api/devices", deviceRoutes);
+app.use("/api/auth", authRoutes);
 
 async function bootstrap() {
   await connectDB();
-
   await initAutomationEngine();
+
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
 }
 
 bootstrap().catch(err => {

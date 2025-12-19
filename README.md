@@ -6,6 +6,7 @@
 ```
 2. Frontend setup
 ```shell
+  cd frontend/
   npm install
 ```
 or install node_modules.zip file here: [https://drive.google.com/drive/u/0/folders/1ZLpeMkBtX5sZvxX7NCf6GqyBFr7aB5hO]
@@ -16,7 +17,9 @@ Run Frontend:
 ```
 
 3.Backend setup
+Open another terminal:
 ```shell
+  cd backend/
   npm install
 ```
 or install node_modules.zip file here: [https://drive.google.com/drive/u/0/folders/1ZLpeMkBtX5sZvxX7NCf6GqyBFr7aB5hO]
@@ -25,11 +28,3 @@ Run Backend:
 ```shell
   npm run server
 ```
-
-4. Commit Convention
-``` shell
-  git add .
-  git reset backend/node_modules
-  git reset frontend/node_modules
-```
-This will reduce the load when pushing code and fetching code
