@@ -2,8 +2,10 @@ const express = require('express');
 const path = require('path')
 const cors = require('cors');
 const mqtt = require('mqtt');
+const { connectDB } = require('./config/db');
+const { initAutomationEngine } = require('./services/automation-rules/automation-rule.service');
 require("dotenv").config();
- 
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -13,13 +15,26 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// app.use("api/auth", authRoutes);
+// app.use("api/devices", deviceRoutes);
+
+async function bootstrap() {
+  await connectDB();
+
+  await initAutomationEngine();
+}
+
+bootstrap().catch(err => {
+  console.error("Failed to bootstrap application", err);
+  process.exit(1);
+});
 
 app.get("/", (req, res) => {
-    res.send("Hello World");
+  res.send("Hello World");
 });
 
 app.listen(port, () => {
-    console.log(`Example app listening on port ${process.env.PORT}`);
+  console.log(`Example app listening on port ${process.env.PORT}`);
 });
 
 // MQTT Client Setup
