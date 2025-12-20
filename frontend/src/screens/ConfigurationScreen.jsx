@@ -9,6 +9,18 @@ import { LockConfig } from '../components/device-config/LockConfig';
 export default function ConfigurationScreen({ devices }) {
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [activeTab, setActiveTab] = useState('devices');
+  const [deviceTypeFilter, setDeviceTypeFilter] = useState('all');
+
+  const DEVICE_TYPES = [
+    { value: 'all', label: 'All' },
+    { value: 'light', label: 'Light' },
+    { value: 'fan', label: 'Fan' },
+    { value: 'dht22', label: 'DHT22' },
+    { value: 'mq2', label: 'MQ2' },
+    { value: 'bh1750', label: 'BH1750' },
+    { value: 'lock', label: 'Lock' }
+  ];
+
 
   return (
     <div className="p-6 space-y-6">
@@ -35,32 +47,49 @@ export default function ConfigurationScreen({ devices }) {
       {activeTab === 'devices' && (
         <div className="grid grid-cols-3 gap-6">
           <div className="col-span-1 bg-white rounded-xl border border-gray-200 p-4 h-[600px] flex flex-col">
+
             <h3 className="font-semibold text-gray-900 mb-3">All Devices</h3>
+
+            <select
+              value={deviceTypeFilter}
+              onChange={(e) => setDeviceTypeFilter(e.target.value)}
+              className="mb-3 w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+            >
+              {DEVICE_TYPES.map(type => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
             <div className="flex-1 overflow-y-auto space-y-2 pr-2">
-              {Object.values(devices).map((device) => {
-                const Icon = device.iconComponent;
-                return (
-                  <button
-                    key={device.id}
-                    onClick={() => setSelectedDevice(device)}
-                    className={`w-full text-left p-4 rounded-lg transition ${selectedDevice?.id === device.id
-                      ? 'bg-indigo-50 border-2 border-indigo-600'
-                      : 'bg-white border border-gray-200 hover:border-indigo-300'
-                      }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${device.status === 'online' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                        <Icon className="w-5 h-5" />
+              {Object.values(devices)
+                .filter(device =>
+                  deviceTypeFilter === 'all' || device.type === deviceTypeFilter
+                )
+                .map((device) => {
+                  const Icon = device.iconComponent;
+                  return (
+                    <button
+                      key={device.id}
+                      onClick={() => setSelectedDevice(device)}
+                      className={`w-full text-left p-4 rounded-lg transition ${selectedDevice?.id === device.id
+                        ? 'bg-indigo-50 border-2 border-indigo-600'
+                        : 'bg-white border border-gray-200 hover:border-indigo-300'
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${device.status === 'online' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{device.name}</p>
+                          <p className="text-sm text-gray-500">{device.room}</p>
+                        </div>
+                        <div className={`w-2 h-2 rounded-full ${device.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`}></div>
                       </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">{device.name}</p>
-                        <p className="text-sm text-gray-500">{device.room}</p>
-                      </div>
-                      <div className={`w-2 h-2 rounded-full ${device.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                    </div>
-                  </button>
-                );
-              })}
+                    </button>
+                  );
+                })}
             </div>
           </div>
 

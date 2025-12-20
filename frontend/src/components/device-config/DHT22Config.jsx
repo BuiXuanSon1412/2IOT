@@ -1,5 +1,4 @@
-import DeviceTabs from './DeviceTabs';
-
+import DeviceTabs from './DeviceTabs'
 export function DHT22Config({ device }) {
   return (
     <DeviceTabs tabs={{
@@ -14,7 +13,7 @@ export function DHT22Config({ device }) {
           <input type="number" defaultValue={device.alertTemp} className="input" />
         </label>
       ),
-      History: <pre>{JSON.stringify(device.logs, null, 2)}</pre>,
+      Log: <pre>{JSON.stringify(device.logs, null, 2)}</pre>,
     }} />
   );
 }
