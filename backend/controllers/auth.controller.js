@@ -5,7 +5,7 @@ export async function login(req, res) {
     const { email, password } = req.body;
     const user = await loginService(email, password);
     const tokens = await generateAuthTokens(user);
-    res.send({ user, tokens });
+    res.status(200).send({ user, tokens });
 }
 
 export async function logout(req, res) {

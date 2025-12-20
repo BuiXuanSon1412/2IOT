@@ -1,8 +1,12 @@
 import mongoose from "mongoose";
 
-const deviceSchema = new mongoose.Schema(
+const deviceSchema = new mongoose.Schema( 
     {
-        name: { type: String, required: true },
+        name: { 
+            type: String, 
+            unique: true, 
+            required: true 
+        },
 
         ownerId: {
             type: mongoose.Schema.Types.ObjectId,
@@ -21,6 +25,11 @@ const deviceSchema = new mongoose.Schema(
             type: String,
             enum: ["online", "offline"],
             default: "offline"
+        },
+
+        pin: {
+            type: String,
+            required: true
         },
 
         metadata: {
