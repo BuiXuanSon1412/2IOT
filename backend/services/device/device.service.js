@@ -22,24 +22,23 @@ export const addDevices = async (devices) => {
 
     const conditions = devices.map(d => ({
         name: d.name,
-        ownerId: d.ownerId,
         deviceType: d.deviceType,
         pin: d.pin
     }));
 
     const existingDevices = await Device.find(
         { $or: conditions },
-        { name: 1, ownerId: 1, deviceType: 1, pin: 1 }
+        { name: 1, deviceType: 1, pin: 1 }
     ).lean();
 
     const existingSet = new Set(
         existingDevices.map(d =>
-            `${d.name}:${d.ownerId}:${d.deviceType}:${d.pin}`
+            `${d.name}:${d.deviceType}:${d.pin}`
         )
     );
 
     const toInsert = devices.filter(d =>
-        !existingSet.has(`${d.name}:${d.ownerId}:${d.deviceType}:${d.pin}`)
+        !existingSet.has(`${d.name}:${d.deviceType}:${d.pin}`)
     );
 
     if (toInsert.length === 0) return [];

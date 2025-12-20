@@ -1,6 +1,5 @@
 import { actionSchema } from "../automation-rules/Action.js";
 import { conditionSchema } from "../automation-rules/Condition.js";
-import { scheduleSchema } from "../automation-rules/Schedule.js";
 import mongoose from "mongoose";
 
 const automationRuleSchema = new mongoose.Schema(
@@ -28,8 +27,8 @@ const automationRuleSchema = new mongoose.Schema(
             required: true
         },
 
-        schedule: {
-            type: scheduleSchema,
+        schedule: { // cron expression
+            type: String,
             required: function () {
                 return this.ruleType === "time_based";
             }

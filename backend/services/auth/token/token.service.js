@@ -23,14 +23,14 @@ export const saveToken = async (token, userId, expiredAt, type, blacklisted = fa
     return tokenDoc;
 };
 
-export const verifyToken = async (token, type) => {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    const tokenDoc = await Token.findOne({ token, user: payload.sub, type: payload.type, blacklisted: false });
-    if (!tokenDoc) {
-        throw new Error('Token not found');
-    }
-    return tokenDoc;
-};
+// export const verifyToken = async (token, type) => {
+//     const payload = jwt.verify(token, process.env.JWT_SECRET);
+//     const tokenDoc = await Token.findOne({ token, user: payload.sub, type: payload.type, blacklisted: false });
+//     if (!tokenDoc) {
+//         throw new Error('Token not found');
+//     }
+//     return tokenDoc;
+// };
 
 export const generateAuthTokens = async (user) => {
     const accessTokenExpires = moment().add(process.env.ACCESS_TOKEN_EXPIRES_IN, 'hours');
