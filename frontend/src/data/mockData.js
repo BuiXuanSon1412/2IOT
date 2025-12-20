@@ -13,10 +13,22 @@ export const mockDeviceDetails = {
     power: true,
     speed: 3, // 0-5 speed levels
     mode: 'normal', // normal, sleep, natural
-    oscillation: true,
     timer: 0, // minutes, 0 = off
     energyUsage: '0.075 kWh',
-    lastUpdated: '2 mins ago'
+    lastUpdated: '2 mins ago',
+
+    // ===== Basic =====
+    isOn: true,
+    speed: 'medium', // low | medium | high
+
+    // ===== Advanced =====
+    maxRPM: 1200,
+
+    // ===== Logs =====
+    logs: [
+      'Fan turned ON',
+      'Speed changed to Medium',
+    ],
   },
   'light-living01-001': {
     id: 'light-living01-001',
@@ -28,9 +40,22 @@ export const mockDeviceDetails = {
     iconComponent: Lightbulb,
     power: true,
     brightness: 75, // 0-100%
-    colorTemp: 4000, // 2700-6500K
     energyUsage: '0.012 kWh',
-    lastUpdated: '1 min ago'
+    lastUpdated: '1 min ago',
+    // ===== Basic =====
+    isOn: true,
+    brightness: 75,
+
+    // ===== Advanced =====
+    autoOffMinutes: 15,
+    powerLimitWatt: 12,
+
+    // ===== Logs =====
+    logs: [
+      'Turned ON at 18:30',
+      'Brightness set to 75%',
+      'Auto-off scheduled (15 min)',
+    ],
   },
   'dht22-living01-001': {
     id: 'dht22-living01-001',
@@ -40,9 +65,21 @@ export const mockDeviceDetails = {
     status: 'online',
     icon: '🌡️',
     iconComponent: Thermometer,
-    temperature: 23.5, // Celsius
-    humidity: 58, // Percentage
-    lastUpdated: '30 secs ago'
+    lastUpdated: '30 secs ago',
+    // ===== Basic =====
+    temperature: 29.4,
+    humidity: 68,
+
+    // ===== Advanced =====
+    alertTempThreshold: 32,
+    alertHumidityThreshold: 75,
+    pollingIntervalSec: 5,
+
+    // ===== Logs =====
+    logs: [
+      'Temp: 29.1°C, Humidity: 65%',
+      'Temp: 29.4°C, Humidity: 68%',
+    ],
   },
   'bh1750-living01-001': {
     id: 'bh1750-living01-001',
@@ -54,7 +91,20 @@ export const mockDeviceDetails = {
     iconComponent: Activity, // or import Sun from lucide-react
     lightLevel: 245, // lux
     condition: 'bright', // dark, dim, bright, very-bright
-    lastUpdated: '20 secs ago'
+    lastUpdated: '20 secs ago',
+
+    // ===== Basic =====
+    lux: 420,
+
+    // ===== Advanced =====
+    pollingIntervalSec: 10,
+    calibrationFactor: 1.02,
+
+    // ===== Logs =====
+    logs: [
+      'Lux reading: 450',
+      'Lux reading: 420',
+    ],
   },
   // === STAIR 01 ===
   'light-stair01-001': {
@@ -67,9 +117,20 @@ export const mockDeviceDetails = {
     iconComponent: Lightbulb,
     power: false,
     brightness: 50,
-    colorTemp: 3500,
     energyUsage: '0.008 kWh',
-    lastUpdated: '5 mins ago'
+    lastUpdated: '5 mins ago',
+    // ===== Basic =====
+    lux: 420,
+
+    // ===== Advanced =====
+    pollingIntervalSec: 10,
+    calibrationFactor: 1.02,
+
+    // ===== Logs =====
+    logs: [
+      'Lux reading: 450',
+      'Lux reading: 420',
+    ],
   },
   'bh1750-stair01-001': {
     id: 'bh1750-stair01-001',
@@ -95,7 +156,6 @@ export const mockDeviceDetails = {
     power: false,
     speed: 2,
     mode: 'exhaust', // exhaust mode
-    oscillation: false,
     timer: 0,
     energyUsage: '0.095 kWh',
     lastUpdated: '1 min ago'
@@ -113,7 +173,20 @@ export const mockDeviceDetails = {
     lpgDetected: false,
     coDetected: false,
     alertThreshold: 1000, // PPM
-    lastUpdated: '15 secs ago'
+    lastUpdated: '15 secs ago',
+    // ===== Basic =====
+    gasLevel: 180, // ppm
+    smokeDetected: false,
+
+    // ===== Advanced =====
+    sensitivity: 3, // 1–5
+    alarmEnabled: true,
+
+    // ===== Logs =====
+    logs: [
+      'Gas level: 170 ppm',
+      'Gas level: 180 ppm',
+    ],
   },
 
   // === GARAGE 01 ===
@@ -133,7 +206,19 @@ export const mockDeviceDetails = {
     accessLog: [
       { user: 'John', time: '8:30 AM', action: 'unlock' },
       { user: 'Sarah', time: '7:15 AM', action: 'lock' }
-    ]
+    ],
+    // ===== Basic =====
+    locked: true,
+
+    // ===== Advanced =====
+    autoLockSeconds: 30,
+    failedAttemptLimit: 5,
+
+    // ===== Logs =====
+    logs: [
+      'Door locked automatically',
+      'Door unlocked by user',
+    ],
   },
 
   // === BATHROOM 01 ===
@@ -145,9 +230,21 @@ export const mockDeviceDetails = {
     status: 'online',
     icon: '🌡️',
     iconComponent: Thermometer,
-    temperature: 24.2,
-    humidity: 72, // High humidity expected in bathroom
-    lastUpdated: '45 secs ago'
+    lastUpdated: '45 secs ago',
+    // ===== Basic =====
+    temperature: 29.4,
+    humidity: 68,
+
+    // ===== Advanced =====
+    alertTempThreshold: 32,
+    alertHumidityThreshold: 75,
+    pollingIntervalSec: 5,
+
+    // ===== Logs =====
+    logs: [
+      'Temp: 29.1°C, Humidity: 65%',
+      'Temp: 29.4°C, Humidity: 68%',
+    ],
   },
 
   // === BEDROOM 01 ===
@@ -162,10 +259,21 @@ export const mockDeviceDetails = {
     power: true,
     speed: 2,
     mode: 'sleep', // sleep mode - quieter
-    oscillation: true,
     timer: 480, // 8 hours
     energyUsage: '0.065 kWh',
-    lastUpdated: '3 mins ago'
+    lastUpdated: '3 mins ago',
+    // ===== Basic =====
+    isOn: true,
+    speed: 'medium', // low | medium | high
+
+    // ===== Advanced =====
+    maxRPM: 1200,
+
+    // ===== Logs =====
+    logs: [
+      'Fan turned ON',
+      'Speed changed to Medium',
+    ],
   },
   'light-bedroom01-001': {
     id: 'light-bedroom01-001',
@@ -177,9 +285,22 @@ export const mockDeviceDetails = {
     iconComponent: Lightbulb,
     power: true,
     brightness: 30,
-    colorTemp: 2700, // Warm light for bedroom
     energyUsage: '0.006 kWh',
-    lastUpdated: '2 mins ago'
+    lastUpdated: '2 mins ago',
+    // ===== Basic =====
+    isOn: true,
+    brightness: 75,
+
+    // ===== Advanced =====
+    autoOffMinutes: 15,
+    powerLimitWatt: 12,
+
+    // ===== Logs =====
+    logs: [
+      'Turned ON at 18:30',
+      'Brightness set to 75%',
+      'Auto-off scheduled (15 min)',
+    ],
   },
   'dht22-bedroom01-001': {
     id: 'dht22-bedroom01-001',
@@ -189,9 +310,21 @@ export const mockDeviceDetails = {
     status: 'online',
     icon: '🌡️',
     iconComponent: Thermometer,
-    temperature: 22.8,
-    humidity: 55,
-    lastUpdated: '1 min ago'
+    lastUpdated: '1 min ago',
+    // ===== Basic =====
+    temperature: 29.4,
+    humidity: 68,
+
+    // ===== Advanced =====
+    alertTempThreshold: 32,
+    alertHumidityThreshold: 75,
+    pollingIntervalSec: 5,
+
+    // ===== Logs =====
+    logs: [
+      'Temp: 29.1°C, Humidity: 65%',
+      'Temp: 29.4°C, Humidity: 68%',
+    ],
   },
   'bh1750-bedroom01-001': {
     id: 'bh1750-bedroom01-001',
@@ -203,7 +336,19 @@ export const mockDeviceDetails = {
     iconComponent: Activity,
     lightLevel: 45, // lux
     condition: 'dim',
-    lastUpdated: '30 secs ago'
+    lastUpdated: '30 secs ago',
+    // ===== Basic =====
+    lux: 420,
+
+    // ===== Advanced =====
+    pollingIntervalSec: 10,
+    calibrationFactor: 1.02,
+
+    // ===== Logs =====
+    logs: [
+      'Lux reading: 450',
+      'Lux reading: 420',
+    ],
   },
   // === BEDROOM 02 ===
   'fan-bedroom02-001': {
@@ -217,10 +362,21 @@ export const mockDeviceDetails = {
     power: false,
     speed: 3,
     mode: 'normal',
-    oscillation: false,
     timer: 0,
     energyUsage: '0.080 kWh',
-    lastUpdated: '10 mins ago'
+    lastUpdated: '10 mins ago',
+    // ===== Basic =====
+    isOn: true,
+    speed: 'medium', // low | medium | high
+
+    // ===== Advanced =====
+    maxRPM: 1200,
+
+    // ===== Logs =====
+    logs: [
+      'Fan turned ON',
+      'Speed changed to Medium',
+    ],
   },
   'light-bedroom02-001': {
     id: 'light-bedroom02-001',
@@ -232,9 +388,22 @@ export const mockDeviceDetails = {
     iconComponent: Lightbulb,
     power: false,
     brightness: 60,
-    colorTemp: 3500,
     energyUsage: '0.010 kWh',
-    lastUpdated: '20 mins ago'
+    lastUpdated: '20 mins ago',
+    // ===== Basic =====
+    isOn: true,
+    brightness: 75,
+
+    // ===== Advanced =====
+    autoOffMinutes: 15,
+    powerLimitWatt: 12,
+
+    // ===== Logs =====
+    logs: [
+      'Turned ON at 18:30',
+      'Brightness set to 75%',
+      'Auto-off scheduled (15 min)',
+    ],
   },
   'dht22-bedroom02-001': {
     id: 'dht22-bedroom02-001',
@@ -244,9 +413,21 @@ export const mockDeviceDetails = {
     status: 'online',
     icon: '🌡️',
     iconComponent: Thermometer,
-    temperature: 23.1,
-    humidity: 60,
-    lastUpdated: '2 mins ago'
+    lastUpdated: '2 mins ago',
+    // ===== Basic =====
+    temperature: 29.4,
+    humidity: 68,
+
+    // ===== Advanced =====
+    alertTempThreshold: 32,
+    alertHumidityThreshold: 75,
+    pollingIntervalSec: 5,
+
+    // ===== Logs =====
+    logs: [
+      'Temp: 29.1°C, Humidity: 65%',
+      'Temp: 29.4°C, Humidity: 68%',
+    ],
   },
   'bh1750-bedroom02-001': {
     id: 'bh1750-bedroom02-001',
@@ -258,7 +439,19 @@ export const mockDeviceDetails = {
     iconComponent: Activity,
     lightLevel: 10, // lux
     condition: 'dark',
-    lastUpdated: '25 secs ago'
+    lastUpdated: '25 secs ago',
+    // ===== Basic =====
+    lux: 420,
+
+    // ===== Advanced =====
+    pollingIntervalSec: 10,
+    calibrationFactor: 1.02,
+
+    // ===== Logs =====
+    logs: [
+      'Lux reading: 450',
+      'Lux reading: 420',
+    ],
   },
   // === HALLWAY 01 ===
   'light-hallway01-001': {
@@ -271,9 +464,22 @@ export const mockDeviceDetails = {
     iconComponent: Lightbulb,
     power: true,
     brightness: 100,
-    colorTemp: 5000, // Bright white for hallway
     energyUsage: '0.015 kWh',
-    lastUpdated: '30 secs ago'
+    lastUpdated: '30 secs ago',
+    // ===== Basic =====
+    isOn: true,
+    brightness: 75,
+
+    // ===== Advanced =====
+    autoOffMinutes: 15,
+    powerLimitWatt: 12,
+
+    // ===== Logs =====
+    logs: [
+      'Turned ON at 18:30',
+      'Brightness set to 75%',
+      'Auto-off scheduled (15 min)',
+    ],
   },
   'bh1750-hallway01-001': {
     id: 'bh1750-hallway01-001',
@@ -285,7 +491,19 @@ export const mockDeviceDetails = {
     iconComponent: Activity,
     lightLevel: 580, // lux
     condition: 'very-bright',
-    lastUpdated: '15 secs ago'
+    lastUpdated: '15 secs ago',
+    // ===== Basic =====
+    lux: 420,
+
+    // ===== Advanced =====
+    pollingIntervalSec: 10,
+    calibrationFactor: 1.02,
+
+    // ===== Logs =====
+    logs: [
+      'Lux reading: 450',
+      'Lux reading: 420',
+    ],
   }
 };
 
