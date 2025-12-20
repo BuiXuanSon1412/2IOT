@@ -9,20 +9,18 @@
   cd frontend/
   npm install
 ```
-or install node_modules.zip file here: [https://drive.google.com/drive/u/0/folders/1ZLpeMkBtX5sZvxX7NCf6GqyBFr7aB5hO]
 
 Run Frontend:
 ```shell
   npm run dev
 ```
 
-3.Backend setup
+3.Backend setup <br/>
 Open another terminal:
 ```shell
   cd backend/
   npm install
 ```
-or install node_modules.zip file here: [https://drive.google.com/drive/u/0/folders/1ZLpeMkBtX5sZvxX7NCf6GqyBFr7aB5hO]
 
 Run Backend:
 ```shell
