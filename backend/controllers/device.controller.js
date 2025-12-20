@@ -5,7 +5,7 @@ import {
     updateDeviceStatusByName
 } from "../services/device/device.service.js";
 
-export async function fetchAll (req, res) {
+export async function fetchAllDevices (req, res) {
     try {
         const devices = await getAllDevices();
         res.status(200).json(devices);
@@ -18,7 +18,7 @@ export async function fetchAll (req, res) {
 export async function addListOfDevices (req, res) {
     let devicesList = req.body.devices;
     if (typeof devicesList === 'undefined') {
-        return res.status(400).json({ message: "Devices list is required" });
+        return res.status(400).json({ message: "Devices list is required, req.body.devices is undefined" });
     }
     if (!Array.isArray(devicesList)) devicesList = [devicesList];
 
@@ -44,7 +44,7 @@ export async function deleteDevices (req, res) {
     }
     catch (error) {
         res.status(500).json({ message: error.message });
-    }
+    } 
 }
 
 export async function toggleDeviceStatus (req, res) {

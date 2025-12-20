@@ -12,7 +12,13 @@ const sensorSchema = new mongoose.Schema(
                 measure: { type: String },
                 snapshotValue: { type: Number },
                 unit: { type: String }
-            }]
+            }],
+            default: [{
+                measure: "",
+                snapshotValue: null,
+                unit: ""
+            }],
+            required: true
         },
 
         pin: {
