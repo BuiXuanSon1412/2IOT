@@ -3,6 +3,8 @@ import cors from "cors";
 import mqtt from "mqtt";
 import authRoutes from "./routes/auth.routes.js";
 import deviceRoutes from "./routes/device.routes.js";
+import sensorRoutes from "./routes/sensor.routes.js";
+import userRoutes from "./routes/user.routes.js";
 import { connectDB } from "./config/db.js";
 import dotenv from "dotenv";
 
@@ -18,6 +20,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/devices", deviceRoutes);
+app.use("/api/sensors", sensorRoutes);
+app.use("/api/users", userRoutes);
 
 async function bootstrap() {
   await connectDB(mongoDbUri);

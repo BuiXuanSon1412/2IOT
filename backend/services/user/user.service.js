@@ -13,7 +13,12 @@ export const getUserByEmail = async (email) => {
     return user;
 };
 
-export const createUser = async (email, password, name) => {
+export const getAllUsers = async () => {
+    const users = await User.find({});
+    return users;
+}
+
+export const createUser = async (name, email, password, role) => {
     const existing = await User.findOne({ email });
     if (existing) {
         return null;
@@ -22,13 +27,12 @@ export const createUser = async (email, password, name) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
     const user = await User.create({
+        name,
         email,
         passwordHash,
-        name,
-        role: "user"
+        role: role
     });
 
-    console.log(user.email);
     return user;
 };
 
@@ -61,4 +65,8 @@ export const updateUserLastLoginTime = async (userId) => {
     }
 
     return user;
+};
+
+export const updateUserPermissionOnDevice = async (userId, deviceId, permissionLevel) => {
+    // TODO
 };
