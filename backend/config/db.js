@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
-export async function connectDB() {
-    const uri = process.env.MONGO_URI || "mongodb://localhost:27017/2iot-dev";
+export async function connectDB(db_uri) {
+    const uri = db_uri;
 
     if (!uri) {
         throw new Error("MONGO_URI is not defined");

@@ -79,15 +79,3 @@ export const updateDevicePinByName = async (name, newPin) => {
 
     return device;
 };
-
-export const updateDeviceMetadataByName = async (name, newMetadata) => {
-    const device = await Device.findOneAndUpdate(
-        { name: name },
-        { $set: { metadata: newMetadata } },
-        { new: true }
-    );
-
-    if (!device) return null;
-
-    return device;
-}

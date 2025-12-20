@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticate, authorize } from '../middleware/auth/auth.js';
-import { addListOfDevices, deleteDevices, fetchAll, toggleDeviceStatus, updateDeviceValues } from '../controllers/device.controller.js';
+import { addListOfDevices, deleteDevices, fetchAll, toggleDeviceStatus } from '../controllers/device.controller.js';
 
 const router = express.Router();
 

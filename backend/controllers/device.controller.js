@@ -2,8 +2,7 @@ import {
     getAllDevices,
     addDevices,
     removeDevicesByName,
-    updateDeviceStatusByName,
-    updateDeviceMetadataByName
+    updateDeviceStatusByName
 } from "../services/device/device.service.js";
 
 export async function fetchAll (req, res) {
@@ -56,21 +55,6 @@ export async function toggleDeviceStatus (req, res) {
 
     try {
         const updatedDevice = await updateDeviceStatusByName(name, newStatus);
-        res.status(200).json(updatedDevice);
-    }
-    catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
-
-export async function updateDeviceValues (req, res) {
-    const { name, newMetadata } = req.body;
-    if (typeof name == "undefined" || typeof newMetadata == "undefined") {
-        return res.status(400).json({ message: "Device name and new metadata are required" });
-    }
-
-    try {
-        const updatedDevice = await updateDeviceMetadataByName(name, newMetadata);
         res.status(200).json(updatedDevice);
     }
     catch (error) {

@@ -1,23 +1,31 @@
-import mongoose from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 
-const deviceSchema = new mongoose.Schema( 
+const deviceSchema = new mongoose.Schema(
     {
-        name: { 
-            type: String, 
-            unique: true, 
-            required: true 
+        name: {
+            type: String,
+            required: true
+        },
+
+        area: {
+            type: {
+                room: { type: String },
+                floor: { type: String }
+            },
+            required: true,
+            index: true
+        },
+
+        permittedUsers: {
+            type: [{
+                userId: { type: mongoose.Schema.Types.ObjectId },
+                permissionLevel: { type: String, enum: ["configurable", "control"] }
+            }]
         },
 
         deviceType: {
             type: String,
-            enum: ["sensor", "actuator"],
-            required: true
-        },
-
-        status: {
-            type: String,
-            enum: ["online", "offline"],
-            default: "offline"
+            required: true,
         },
 
         pin: {
@@ -25,29 +33,59 @@ const deviceSchema = new mongoose.Schema(
             required: true
         },
 
-        metadata: {
-            type: mongoose.Schema.Types.Mixed,
-            default: {} 
-            /*
-            Could be in any format, e.g. for DHT22 sensor:
-            {
-                "temperature":{
-                    "value": 25,
-                    "unit": "C"
-                },
-                "humidity": {
-                    "value": 60,
-                    "unit": "%"
-                }
-            }
-            */ 
+        dependOn : { // e.g., measurements like: temperature, humidity
+            type: String,
+            default: null
         },
 
-        lastSeenAt: {
-            type: Date
+        settings: {
+            powerLimitWatts: { type: Number },
+
+            schedules: {
+                type: [{
+                    cronExpression: { type: String }, // * * * * * 0-6
+                    action: {
+                        type: [{
+                            name: { type: String },
+                            value: { type: String }
+                        }]
+                    }
+                }]
+            },
+
+            autoBehavior: {
+                type: [{
+                    measure: { type: String },
+                    condition: { type: String, enum: ["gt", "ge", "lt", "le", "eq", "neq", "contains"] },
+                    value: { type: mongoose.Schema.Types.Mixed },
+                    action: {
+                        type: [{
+                            name: { type: String },
+                            value: { type: String }
+                        }]
+                    }
+                }],
+                default: []
+            }
+        },
+
+        status: { 
+            type: String,
+            enum: ["online", "offline"],
+            default: "offline"
+        },
+
+        characteristic: {
+            type: [{
+                name: { type: String }, // speed | light power
+                unit: { type: String }, // null  | %
+                value: { type: String } // 4     | 80
+            }]
         }
     },
-    { timestamps: true }
+    {
+        timestamps: true
+    }
 );
 
 export default mongoose.model("Device", deviceSchema);
