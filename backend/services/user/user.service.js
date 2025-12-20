@@ -28,6 +28,7 @@ export const createUser = async (email, password, name) => {
         role: "user"
     });
 
+    console.log(user.email);
     return user;
 };
 

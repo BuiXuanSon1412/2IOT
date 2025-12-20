@@ -4,13 +4,13 @@ import mqtt from "mqtt";
 import authRoutes from "./routes/auth.routes.js";
 import deviceRoutes from "./routes/device.routes.js";
 import { connectDB } from "./config/db.js";
-import { initAutomationEngine } from "./services/automation-rules/automation-rule.service.js";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+const mongoDbUri = process.env.MONGO_URI || "mongodb://localhost:27017/2iot-dev";
 
 app.use(cors({ origin: process.env.CORS }));
 app.use(express.json());
@@ -20,8 +20,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/devices", deviceRoutes);
 
 async function bootstrap() {
-  await connectDB();
-  await initAutomationEngine();
+  await connectDB(mongoDbUri);
 
   // TODO: add MQTT connection establishment 
 
