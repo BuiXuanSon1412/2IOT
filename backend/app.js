@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import mqtt from "mqtt";
 import authRoutes from "./routes/auth.routes.js";
+import deviceRoutes from "./routes/device.routes.js";
 import { connectDB } from "./config/db.js";
 import { initAutomationEngine } from "./services/automation-rules/automation-rule.service.js";
 import dotenv from "dotenv";
@@ -16,10 +17,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRoutes);
+app.use("/api/devices", deviceRoutes);
 
 async function bootstrap() {
   await connectDB();
   await initAutomationEngine();
+
+  // TODO: add MQTT connection establishment 
 
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
