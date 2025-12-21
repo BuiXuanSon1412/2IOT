@@ -4,15 +4,14 @@ import { Clock, Zap, Bell, Info, TrendingUp, Settings } from 'lucide-react';
 
 export function FanConfig({ device }) {
   const [config, setConfig] = useState({
-    // General
-    maxRPM: 1200,
-    powerLimit: 100, // watts
+    // Basic
+    defaultSpeed: device.speed || 3,
+    startupMode: 'last', // last, off, preset
 
     // Automation
     autoTempThreshold: 28,
     autoTempSpeed: 4,
     autoHumidityThreshold: 70,
-    autoHumiditySpeed: 4,
     linkToSensor: 'dht22-living01-001',
 
     // Schedule
@@ -26,6 +25,10 @@ export function FanConfig({ device }) {
     alertMaintenance: 720, // hours
     emailNotify: true,
 
+    // Advanced
+    maxRPM: 1200,
+    powerLimit: 100, // watts
+    sleepModeRPM: 600,
   });
 
   const updateConfig = (key, value) => {
@@ -45,10 +48,11 @@ export function FanConfig({ device }) {
       </div>
 
       <DeviceTabs tabs={{
-        "General": <GeneralTab config={config} updateConfig={updateConfig} device={device} />,
+        "Basic Settings": <BasicTab config={config} updateConfig={updateConfig} />,
         "Automation": <AutomationTab config={config} updateConfig={updateConfig} />,
         "Schedule": <ScheduleTab config={config} updateConfig={updateConfig} />,
         "Alerts": <AlertsTab config={config} updateConfig={updateConfig} />,
+        "Advanced": <AdvancedTab config={config} updateConfig={updateConfig} device={device} />,
         "History": <HistoryTab device={device} />
       }} />
     </div>
@@ -114,90 +118,52 @@ function AutomationTab({ config, updateConfig }) {
           </label>
           <label className="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" className="sr-only peer" defaultChecked />
-            <div className="w-11 h-6 bg-gray-300 peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+            <div className="w-11 h-6 bg-gray-300 peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600">
+            </div>
           </label>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs text-gray-600 mb-1">Temperature Threshold (°C)</label>
-            <input
-              type="number"
-              value={config.autoTempThreshold}
-              onChange={(e) => updateConfig('autoTempThreshold', Number(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-            />
+            <label className="block text-xs text-gray-600 mb-1">
+              Temperature Threshold (°C)
+            </label>
+            <input type="number" value={config.autoTempThreshold} onChange={(e) => updateConfig('autoTempThreshold', Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
           </div>
           <div>
-            <label className="block text-xs text-gray-600 mb-1">Auto Speed Level</label>
-            <select
-              value={config.autoTempSpeed}
-              onChange={(e) => updateConfig('autoTempSpeed', Number(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-            >
-              {[1, 2, 3, 4, 5].map(s => <option key={s} value={s}>Level {s}</option>)}
+            <label className="block text-xs text-gray-600 mb-1">
+              Auto Speed Level
+            </label>
+            <select value={config.autoTempSpeed} onChange={(e) => updateConfig('autoTempSpeed', Number(e.target.value))} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+              {[1, 2, 3, 4, 5].map(s =>
+                <option key={s} value={s}>Level {s}</option>)}
             </select>
           </div>
         </div>
       </div>
-
-
       <div>
         <div className="flex items-center justify-between mb-3">
           <label className="text-sm font-medium text-gray-700">
             Auto-Start on High Humidity
           </label>
-
           <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              className="sr-only peer"
-              checked={config.autoHumidityEnabled}
-              onChange={(e) =>
-                updateConfig('autoHumidityEnabled', e.target.checked)
-              }
-            />
-            <div className="w-11 h-6 bg-gray-300 peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-full
-              peer peer-checked:after:translate-x-full peer-checked:after:border-white
-              after:content-[''] after:absolute after:top-[2px] after:left-[2px]
-              after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all
-              peer-checked:bg-indigo-600">
+            <input type="checkbox" className="sr-only peer" checked={config.autoHumidityEnabled} onChange={(e) => updateConfig('autoHumidityEnabled', e.target.checked)} />
+            <div className="w-11 h-6 bg-gray-300 peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-fullpeer peer-checked:after:translate-x-full peer-checked:after:border-whiteafter:content-[''] after:absolute after:top-[2px] after:left-[2px]after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-allpeer-checked:bg-indigo-600">
             </div>
           </label>
         </div>
-
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs text-gray-600 mb-1">
               Humidity Threshold (%)
             </label>
-            <input
-              type="number"
-              value={config.autoHumidityThreshold}
-              onChange={(e) =>
-                updateConfig('autoHumidityThreshold', Number(e.target.value))
-              }
-              disabled={!config.autoHumidityEnabled}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg disabled:bg-gray-100"
-            />
+            <input type="number" value={config.autoHumidityThreshold} onChange={(e) => updateConfig('autoHumidityThreshold', Number(e.target.value))} disabled={!config.autoHumidityEnabled} className="w-full px-3 py-2 border border-gray-300 rounded-lg disabled:bg-gray-100" />
           </div>
-
           <div>
             <label className="block text-xs text-gray-600 mb-1">
               Auto Speed Level
             </label>
-            <select
-              value={config.autoHumiditySpeed}
-              onChange={(e) =>
-                updateConfig('autoHumiditySpeed', Number(e.target.value))
-              }
-              disabled={!config.autoHumidityEnabled}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg disabled:bg-gray-100"
-            >
-              {[1, 2, 3, 4, 5].map((s) => (
-                <option key={s} value={s}>
-                  Level {s}
-                </option>
-              ))}
+            <select value={config.autoHumiditySpeed} onChange={(e) => updateConfig('autoHumiditySpeed', Number(e.target.value))} disabled={!config.autoHumidityEnabled} className="w-full px-3 py-2 border border-gray-300 rounded-lg disabled:bg-gray-100">{[1, 2, 3, 4, 5].map((s) => (<option key={s} value={s}>
+              Level {s}</option>))}
             </select>
           </div>
         </div>
@@ -206,15 +172,13 @@ function AutomationTab({ config, updateConfig }) {
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Linked Sensor
         </label>
-        <select
-          value={config.linkToSensor}
-          onChange={(e) => updateConfig('linkToSensor', e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-        >
-          <option value="dht22-living01-001">Living Room Climate (DHT22)</option>
+        <select value={config.linkToSensor} onChange={(e) => updateConfig('linkToSensor', e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+          <option value="dht22-living01-001">
+            Living Room Climate (DHT22)
+          </option>
         </select>
       </div>
-    </div>
+    </div >
   );
 }
 
@@ -336,7 +300,7 @@ function AlertsTab({ config, updateConfig }) {
   );
 }
 
-function GeneralTab({ config, updateConfig, device }) {
+function AdvancedTab({ config, updateConfig, device }) {
   return (
     <div className="space-y-6">
       <div>
@@ -346,7 +310,6 @@ function GeneralTab({ config, updateConfig, device }) {
         <input
           type="number"
           value={config.maxRPM}
-          disabled
           onChange={(e) => updateConfig('maxRPM', Number(e.target.value))}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
         />
@@ -360,12 +323,23 @@ function GeneralTab({ config, updateConfig, device }) {
         <input
           type="number"
           value={config.powerLimit}
-          disabled
           onChange={(e) => updateConfig('powerLimit', Number(e.target.value))}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
         />
       </div>
 
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Sleep Mode RPM
+        </label>
+        <input
+          type="number"
+          value={config.sleepModeRPM}
+          onChange={(e) => updateConfig('sleepModeRPM', Number(e.target.value))}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+        />
+        <p className="text-xs text-gray-500 mt-1">Lower RPM for quieter night operation</p>
+      </div>
 
       <div className="border-t border-gray-200 pt-6">
         <h4 className="text-sm font-semibold text-gray-900 mb-3">Device Information</h4>
@@ -387,6 +361,12 @@ function GeneralTab({ config, updateConfig, device }) {
             <p className="font-medium text-gray-900">{device.lastUpdated}</p>
           </div>
         </div>
+      </div>
+
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <p className="text-sm text-yellow-800">
+          ⚠️ <strong>Warning:</strong> Changing advanced settings may affect device performance. Only modify if you understand the implications.
+        </p>
       </div>
     </div>
   );
