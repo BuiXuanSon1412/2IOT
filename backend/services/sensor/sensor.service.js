@@ -1,4 +1,4 @@
-import Sensor from "../../models/sensor/Sensor.js";
+import Sensor from "../../models/Sensor.js";
 
 export const getAllSensors = async () => {
     const sensors = await Sensor.find({});

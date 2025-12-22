@@ -1,4 +1,4 @@
-import Device from "../../models/device/Device.js";
+import Device from "../../models/Device.js";
 
 export const getDeviceById = async (deviceId) => {
     const device = await Device.findById({ deviceId });

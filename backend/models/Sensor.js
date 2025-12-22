@@ -3,8 +3,7 @@ import mongoose from "mongoose";
 const sensorSchema = new mongoose.Schema(
     {
         name: {
-            type: String,
-            required: true
+            type: String
         },
 
         measures: {
@@ -23,7 +22,8 @@ const sensorSchema = new mongoose.Schema(
 
         pin: {
             type: String,
-            required: true
+            required: true,
+            unique: true
         },
 
         area: {
