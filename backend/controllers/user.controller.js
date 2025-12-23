@@ -1,4 +1,4 @@
-import { getAllUsers, createUser } from "../services/user/user.service.js";
+import { getAllUsers, createUser, createAdmin } from "../services/user/user.service.js";
 
 export async function fetchAllUser (req, res) {
     try {
@@ -13,8 +13,19 @@ export async function fetchAllUser (req, res) {
 export async function addNewUser (req, res) { // add one user at a time
     try {
         const newUser = req.body;
-        const addedUser = await createUser(newUser.name, newUser.email, newUser.password, newUser.role?newUser.role:"user");
+        const addedUser = await createUser(newUser.email, newUser.password, newUser.name);
         res.status(201).json({ message: "Added user", newUser: addedUser });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export async function createNewAdmin (req, res) {
+    try {
+        const newAdmin = req.body;
+        const addedAdmin = await createAdmin(newAdmin.email, newAdmin.password, newAdmin.name);
+        res.status(201).json({ message: "Added admin", newAdmin: addedAdmin });
     }
     catch (error) {
         res.status(500).json({ message: error.message });

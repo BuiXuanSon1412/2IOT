@@ -5,13 +5,15 @@ import {
     addNewUser, 
     changePermissionOfUserOnDevice, 
     changeUserRole,
-    removeUser
+    removeUser,
+    createNewAdmin
 } from '../controllers/user.controller.js'; 
 
 const router = express.Router();
 
 router.get('/', authenticate, fetchAllUser);
 router.post('/', authenticate, authorize('admin'), addNewUser); // only admins can add new user 
+router.post('/admin/create', createNewAdmin);
 router.delete('/', authenticate, authorize('admin'), removeUser);
 router.patch('/role', authenticate, authorize('admin'), changeUserRole);
 router.patch('/role', authenticate, authorize('admin'), changePermissionOfUserOnDevice);

@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { tokenTypes } from "../../../config/tokens.js";
 import Token from "../../../models/Token.js";
+import moment from "moment";
 
 export const generateToken = (userId, userRole, userEmail, type, expires, secret = process.env.JWT_SECRET) => {
     const payload = {
@@ -33,25 +34,27 @@ export const saveToken = async (token, userId, expiredAt, type, blacklisted = fa
 // };
 
 export const generateAuthTokens = async (user) => {
-    const accessTokenExpires = moment().add(process.env.ACCESS_TOKEN_EXPIRES_IN, 'hours');
+    const accessTokenExpires = `${process.env.ACCESS_TOKEN_EXPIRES_IN}h`;
+    const refreshTokenExpires = `${process.env.REFRESH_TOKEN_EXPIRES_IN}d`;
     const accessToken = generateToken(
-        user.id, user.role, user.email, tokenTypes.ACCESS, accessTokenExpires
+        user._id, user.role, user.email, tokenTypes.ACCESS, accessTokenExpires
+    );
+    
+    const refreshToken = generateToken(
+        user._id, user.role, user.email, tokenTypes.REFRESH, refreshTokenExpires
     );
 
-    const refreshTokenExpires = moment().add(process.env.REFRESH_TOKEN_EXPIRES_IN, 'days');
-    const refreshToken = generateToken(
-        user.id, user.role, user.email, tokenTypes.REFRESH, refreshTokenExpires
-    );
-    await saveToken(refreshToken, user.id, refreshTokenExpires, tokenTypes.REFRESH);
+    const refreshTokenExpiresAt = moment().add(process.env.REFRESH_TOKEN_EXPIRES_IN, 'days');
+    await saveToken(refreshToken, user._id, refreshTokenExpiresAt, tokenTypes.REFRESH);
 
     return {
         access: {
             token: accessToken,
-            expires: accessTokenExpires.toDate(),
+            expires: moment().add(process.env.ACCESS_TOKEN_EXPIRES_IN, "hours").toDate(),
         },
         refresh: {
             token: refreshToken,
-            expires: refreshTokenExpires.toDate(),
+            expires: refreshTokenExpiresAt.toDate(),
         },
     };
 };

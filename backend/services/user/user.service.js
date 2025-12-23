@@ -18,7 +18,7 @@ export const getAllUsers = async () => {
     return users;
 }
 
-export const createUser = async (name, email, password, role) => {
+export const createUser = async (name, email, password) => {
     const existing = await User.findOne({ email });
     if (existing) {
         return null;
@@ -30,12 +30,32 @@ export const createUser = async (name, email, password, role) => {
         name,
         email,
         passwordHash,
-        role: role,
+        role: "user",
         createdAt: Date.now()
     });
 
     return user;
 };
+
+export const createAdmin = async (email, password, name) => {
+    const existing = await User.findOne({ email, role: "admin" });
+    console.log(existing);
+    if (existing) {
+        return null;
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+        name,
+        email,
+        passwordHash,
+        role: "admin",
+        createdAt: Date.now()
+    });
+
+    return user;
+}
 
 export const updateUserRole = async (userId, newRole) => {
     if (!["user", "admin"].includes(newRole)) {

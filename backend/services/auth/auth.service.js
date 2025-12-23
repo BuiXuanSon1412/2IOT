@@ -1,49 +1,37 @@
 import bcrypt from "bcrypt";
+import User from "../../models/User.js";
 import Token from "../../models/Token.js";
-import { getUserById, getUserByEmail, updateUserLastLoginTime, createUser } from "../user/user.service.js";
-// import { generateAuthTokens } from "../auth/token/token.service.js";
+import jwt from "jsonwebtoken";
 
-export const loginService = async (email, password) => {
-    const user = await getUserByEmail(email);
-    if (!user) {
-        return null;
-    }
+export async function signupService(name, email, password) {
+    const existing = await User.findOne({ email });
+    if (existing) return null;
 
-    const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) {
-        return null;
-    }
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    await updateUserLastLoginTime(user._id);
+    const user = await User.create({
+        name,
+        email,
+        passwordHash
+    });
 
-    return { user };
+    return user;
 }
 
-export const logoutService = async (refreshToken) => {
-    const refreshTokenDoc = await Token.findOne({ token: refreshToken, type: tokenTypes.REFRESH, blacklisted: false });
-    if (!refreshTokenDoc) {
-        throw new Error("Token not found");
-    }
-    await refreshTokenDoc.remove();
-};
-
-export const signupService = async (email, password, name) => {
-    const user = await createUser(email, password, name);
+export async function loginService(email, password) {
+    const user = await User.findOne({ email });
     if (!user) return null;
 
-    return { user };
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) return null;
+
+    return user;
 }
 
-// export const refreshAuth = async (refreshToken) => {
-//     try {
-//         const refreshTokenDoc = await verifyToken(refreshToken, tokenTypes.REFRESH);
-//         const user = await getUserById(refreshTokenDoc.user);
-//         if (!user) {
-//             throw new Error();
-//         }
-//         await refreshTokenDoc.remove();
-//         return await generateAuthTokens(user);
-//     } catch (error) {
-//         throw new Error("Unauthorized");
-//     }
-// };
+export async function logoutService(refreshToken) {
+    const tokenDoc = await Token.findOne({ token: refreshToken });
+    if (!tokenDoc) return;
+
+    tokenDoc.blacklisted = true;
+    await tokenDoc.save();
+}
