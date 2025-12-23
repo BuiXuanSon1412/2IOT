@@ -6,7 +6,6 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
             unique: true,
-            lowercase: true,
             index: true
         },
         passwordHash: {
@@ -26,6 +25,10 @@ const userSchema = new mongoose.Schema(
         lastLoginAt: {
             type: Date,
             default: null,
+        },
+        createdAt: {
+            type: Date,
+            default: null
         }
     },
     { timestamps: true }

@@ -1,10 +1,9 @@
-import mongoose, { Mongoose } from "mongoose";
+import mongoose from "mongoose";
 
 const deviceSchema = new mongoose.Schema(
     {
         name: {
-            type: String,
-            required: true
+            type: String
         },
 
         area: {
@@ -30,7 +29,8 @@ const deviceSchema = new mongoose.Schema(
 
         pin: {
             type: String,
-            required: true
+            required: true,
+            unique: true
         },
 
         dependOn : { // e.g., measurements like: temperature, humidity

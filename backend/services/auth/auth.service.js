@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import Token from "../../models/token/Token.js";
+import Token from "../../models/Token.js";
 import { getUserById, getUserByEmail, updateUserLastLoginTime, createUser } from "../user/user.service.js";
 // import { generateAuthTokens } from "../auth/token/token.service.js";
 

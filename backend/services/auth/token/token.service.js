@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { tokenTypes } from "../../../config/tokens.js";
-import Token from "../../../models/token/Token.js";
+import Token from "../../../models/Token.js";
 
 export const generateToken = (userId, userRole, userEmail, type, expires, secret = process.env.JWT_SECRET) => {
     const payload = {
