@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Home, Eye, EyeOff } from 'lucide-react';
 
 export default function AuthScreen({ onLogin }) {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -21,23 +20,6 @@ export default function AuthScreen({ onLogin }) {
           </div>
           <h1 className="text-3xl font-bold text-gray-900">SmartHome</h1>
           <p className="text-gray-600 mt-2">Intelligent Living Management</p>
-        </div>
-
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setIsLogin(true)}
-            className={`flex-1 py-2 rounded-lg font-medium transition ${isLogin ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'
-              }`}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => setIsLogin(false)}
-            className={`flex-1 py-2 rounded-lg font-medium transition ${!isLogin ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'
-              }`}
-          >
-            Sign Up
-          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -73,7 +55,11 @@ export default function AuthScreen({ onLogin }) {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
               </button>
             </div>
           </div>
@@ -82,11 +68,10 @@ export default function AuthScreen({ onLogin }) {
             type="submit"
             className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition"
           >
-            {isLogin ? 'Sign In' : 'Create Account'}
+            Sign In
           </button>
         </form>
       </div>
     </div>
   );
 }
-

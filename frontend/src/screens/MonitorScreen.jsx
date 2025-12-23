@@ -39,7 +39,6 @@ export default function MonitorScreen() {
         <StatCard icon={<Wind className="w-5 h-5" />} label="Air Quality" value="Good" status="optimal" />
         <StatCard icon={<Activity className="w-5 h-5" />} label="Active Devices" value="12/15" status="warning" />
       </div>
-
       <div className="bg-white shadow-sm border border-gray-200 p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-bold text-gray-900">Floor Layout</h3>

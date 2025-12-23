@@ -4,9 +4,10 @@ import { Palette, Zap, Bell, Info, TrendingUp, Sun, Moon, Sunrise } from 'lucide
 
 export function LightConfig({ device }) {
   const [config, setConfig] = useState({
-    // General
-    powerLimitWatt: 12,
-    fadeTime: 1, // seconds
+    // Basic
+    defaultBrightness: device.brightness || 75,
+    colorTemperature: 4000, // Kelvin
+    startupMode: 'last', // last, off, preset
 
     // Scenes
     scenes: [
@@ -17,6 +18,8 @@ export function LightConfig({ device }) {
     ],
 
     // Automation
+    autoOnAtDusk: true,
+    autoOffAtDawn: true,
     motionSensorEnabled: false,
     motionTimeout: 5, // minutes
     linkToLightSensor: 'bh1750-living01-001',
@@ -31,8 +34,13 @@ export function LightConfig({ device }) {
     // Alerts
     bulbLifespan: 10000, // hours
     currentUsage: 2450, // hours
+    overheatingAlert: true,
     emailNotify: true,
 
+    // Advanced
+    powerLimitWatt: 12,
+    dimCurve: 'linear', // linear, logarithmic, exponential
+    fadeTime: 1, // seconds
   });
 
   const updateConfig = (key, value) => {
@@ -52,11 +60,12 @@ export function LightConfig({ device }) {
       </div>
 
       <DeviceTabs tabs={{
-        "General": <GeneralTab config={config} updateConfig={updateConfig} device={device} />,
+        "Basic Settings": <BasicTab config={config} updateConfig={updateConfig} />,
         "Scenes": <ScenesTab config={config} updateConfig={updateConfig} />,
         "Automation": <AutomationTab config={config} updateConfig={updateConfig} />,
         "Schedule": <ScheduleTab config={config} updateConfig={updateConfig} />,
         "Alerts": <AlertsTab config={config} updateConfig={updateConfig} />,
+        "Advanced": <AdvancedTab config={config} updateConfig={updateConfig} device={device} />,
         "History": <HistoryTab device={device} />
       }} />
     </div>
@@ -251,7 +260,6 @@ function AutomationTab({ config, updateConfig }) {
             <input
               type="checkbox"
               checked={config.motionSensorEnabled}
-              disabled
               onChange={(e) => updateConfig('motionSensorEnabled', e.target.checked)}
               className="sr-only peer"
             />
@@ -281,6 +289,8 @@ function AutomationTab({ config, updateConfig }) {
           className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-3"
         >
           <option value="bh1750-living01-001">Living Room Light Sensor (BH1750)</option>
+          <option value="bh1750-bedroom01-001">Bedroom Light Sensor (BH1750)</option>
+          <option value="none">No Sensor Link</option>
         </select>
         <div>
           <label className="block text-xs text-gray-600 mb-1">Turn on when ambient light drops below (lux)</label>
@@ -293,6 +303,11 @@ function AutomationTab({ config, updateConfig }) {
         </div>
       </div>
 
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <p className="text-sm text-green-800">
+          ✅ Smart automation will adjust lighting based on time and ambient conditions
+        </p>
+      </div>
     </div>
   );
 }
@@ -344,8 +359,8 @@ function ScheduleTab({ config, updateConfig }) {
               <button
                 key={i}
                 className={`flex-1 py-1.5 rounded text-xs font-medium transition ${schedule.days.includes(i)
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
               >
                 {day}
@@ -375,15 +390,15 @@ function AlertsTab({ config, updateConfig }) {
         <div className="w-full bg-gray-200 rounded-full h-3">
           <div
             className={`h-3 rounded-full transition-all ${lifespanPercent > 90 ? 'bg-red-500' :
-              lifespanPercent > 70 ? 'bg-yellow-500' : 'bg-green-500'
+                lifespanPercent > 70 ? 'bg-yellow-500' : 'bg-green-500'
               }`}
             style={{ width: `${Math.min(lifespanPercent, 100)}%` }}
           ></div>
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          {lifespanPercent > 90 ? 'Replace bulb soon' :
-            lifespanPercent > 70 ? 'Bulb nearing end of life' :
-              'Bulb in good condition'}
+          {lifespanPercent > 90 ? '⚠️ Replace bulb soon' :
+            lifespanPercent > 70 ? '⚡ Bulb nearing end of life' :
+              '✅ Bulb in good condition'}
         </p>
       </div>
 
@@ -398,6 +413,24 @@ function AlertsTab({ config, updateConfig }) {
           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
         />
         <p className="text-xs text-gray-500 mt-1">Alert when bulb reaches 90% of lifespan</p>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <label className="text-sm font-medium text-gray-700">
+            Overheating Alert
+          </label>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={config.overheatingAlert}
+              onChange={(e) => updateConfig('overheatingAlert', e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-300 peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+          </label>
+        </div>
+        <p className="text-xs text-gray-500">Notify if light temperature exceeds safe limits</p>
       </div>
 
       <div className="border-t border-gray-200 pt-6">
@@ -419,7 +452,7 @@ function AlertsTab({ config, updateConfig }) {
   );
 }
 
-function GeneralTab({ config, updateConfig, device }) {
+function AdvancedTab({ config, updateConfig, device }) {
   return (
     <div className="space-y-6">
       <div>
@@ -437,6 +470,22 @@ function GeneralTab({ config, updateConfig, device }) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
+          Dimming Curve
+        </label>
+        <select
+          value={config.dimCurve}
+          onChange={(e) => updateConfig('dimCurve', e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+        >
+          <option value="linear">Linear (Default)</option>
+          <option value="logarithmic">Logarithmic (Smoother low end)</option>
+          <option value="exponential">Exponential (Smoother high end)</option>
+        </select>
+        <p className="text-xs text-gray-500 mt-1">How brightness changes across the dimming range</p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
           Fade Time (seconds)
         </label>
         <input
@@ -447,7 +496,6 @@ function GeneralTab({ config, updateConfig, device }) {
           value={config.fadeTime}
           onChange={(e) => updateConfig('fadeTime', Number(e.target.value))}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-          disabled
         />
         <p className="text-xs text-gray-500 mt-1">Transition time when turning on/off</p>
       </div>
@@ -474,6 +522,11 @@ function GeneralTab({ config, updateConfig, device }) {
         </div>
       </div>
 
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <p className="text-sm text-yellow-800">
+          ⚠️ <strong>Warning:</strong> Changing advanced settings may affect device performance and lifespan.
+        </p>
+      </div>
     </div>
   );
 }
