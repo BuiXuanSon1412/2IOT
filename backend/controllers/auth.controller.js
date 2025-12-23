@@ -51,5 +51,5 @@ export async function logout(req, res) {
     }
 
     await logoutService(refreshToken);
-    res.status(204).send();
+    res.status(200).send();
 }

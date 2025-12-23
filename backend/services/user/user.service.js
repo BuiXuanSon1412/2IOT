@@ -68,7 +68,7 @@ export const updateUserRole = async (userId, newRole) => {
     );
 
     if (!user) {
-        throw new Error("User not found");
+        return null;
     }
 
     return user;
@@ -88,6 +88,8 @@ export const updateUserLastLoginTime = async (userId) => {
     return user;
 };
 
-export const updateUserPermissionOnDevice = async (userId, deviceId, permissionLevel) => {
-    // TODO
-};
+export const deleteUser = async (userId) => {
+    const result = await User.deleteOne({ _id: userId });
+
+    return result.deletedCount === 1;
+}

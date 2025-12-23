@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Device from "../../models/Device.js";
 
 export const getDeviceById = async (deviceId) => {
@@ -46,11 +47,11 @@ export const addDevices = async (devices) => {
     return await Device.insertMany(toInsert);
 };
 
-export const removeDevicesByName = async (names) => {
-    return await Device.deleteMany({ name: { $in: names } });
+export const removeDevicesById = async (ids) => {
+    return await Device.deleteMany({ _id: { $in: ids } });
 }
 
-export const updateDeviceStatusByName = async (name, newStatus) => {
+export const updateDeviceStatusById = async (_id, newStatus) => {
     if (!["online", "offline"].includes(newStatus)) {
         throw new Error("Invalid status");
     }
@@ -58,7 +59,7 @@ export const updateDeviceStatusByName = async (name, newStatus) => {
     const newLastSeenAt = (newStatus == "online" ? new Date() : undefined);
 
     const device = await Device.findOneAndUpdate(
-        { name: name },
+        { _id: _id },
         { $set: { status: newStatus, lastSeenAt: newLastSeenAt } },
         { new: true }
     );
@@ -78,4 +79,35 @@ export const updateDevicePinByName = async (name, newPin) => {
     if (!device) return null;
 
     return device;
+};
+
+
+export const updateUserPermissionOnDevice = async (userId, devicePin, permissionLevel) => {
+    if (!["configurable", "control"].includes(permissionLevel)) {
+        throw new Error("Invalid permission level");
+    }
+
+    const device = Device.findOne({ pin: devicePin });
+    if (!device) {
+        return null;
+    }
+
+    const userObjectId = mongoose.Types.ObjectId(userId);
+
+    const existingPermission = device.permittedUsers.find(
+        (p) => p.userId.equals(userObjectId)
+    );
+    
+    if (existingPermission) {
+        existingPermission.permissionLevel = permissionLevel;
+    }
+    else {
+        device.permittedUsers.push({
+            userId: userObjectId,
+            permissionLevel
+        });
+    }
+
+    await device.save();
+    return device; 
 };

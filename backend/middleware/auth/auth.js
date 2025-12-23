@@ -7,10 +7,10 @@ export function authenticate(req, res, next) {
         return res.status(401).json({ message: "Missing token" });
     }
 
-    const token = authHeader.split(" ")[1];
+    const accessToken = authHeader.split(" ")[1];
 
     try {
-        const payload = jwt.verify(token, process.env.JWT_SECRET);
+        const payload = jwt.verify(accessToken, process.env.JWT_SECRET);
         req.user = payload; // { _id, role, email }
         next();
     } catch (err) {
