@@ -34,8 +34,7 @@ export async function createNewAdmin (req, res) {
 
 export async function changeUserRole (req, res) {
     try {
-        const { userId, newRole } = req.body;
-        const updatedUser = await updateUserRole(userId, newRole);
+        const updatedUser = await updateUserRole(req.body.userId, req.body.newRole);
         res.status(200).json({ message: "User's role updated", updatedUser });
     }
     catch (error) {

@@ -6,6 +6,12 @@ const deviceSchema = new mongoose.Schema(
             type: String
         },
 
+        homeId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Home",
+            required: true
+        },
+
         area: {
             type: {
                 room: { type: String },

@@ -2,17 +2,22 @@ import bcrypt from "bcrypt";
 import User from "../../models/User.js";
 import Token from "../../models/Token.js";
 import jwt from "jsonwebtoken";
+import Home from "../../models/Home.js";
 
-export async function signupService(name, email, password) {
+export async function signupService(name, email, password, joinCode) {
     const existing = await User.findOne({ email });
     if (existing) return null;
 
     const passwordHash = await bcrypt.hash(password, 10);
 
+    const homeId = await Home.findOne({ joinCode: joinCode });
+    if (!homeId) return null;
+
     const user = await User.create({
-        name,
-        email,
-        passwordHash
+        name: name,
+        email: email,
+        passwordHash: passwordHash,
+        homeId: homeId
     });
 
     return user;
