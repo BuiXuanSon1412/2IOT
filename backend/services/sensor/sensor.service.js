@@ -32,34 +32,3 @@ export const addSensors = async (sensors) => {
 
     return await Sensor.insertMany(toInsert);
 }
-
-export const updateSnapshotValuesById = async (sensorId, payload) => {
-    if (typeof payload !== "object") {
-        throw new Error("Payload is not object");
-    }
-
-    const updates = [];
-
-    for (const [key, value] of Object.entries(payload)) {
-        updates.push({
-            updateOne: {
-                filter: {
-                    _id: sensorId,
-                    "measures.measure": key
-                },
-                update: {
-                    $set: {
-                        "measures.$.snapshotValue": value
-                    }
-                }
-            }
-        });
-    }
-
-    if (updates.length === 0) return null;
-
-    const result = await Sensor.bulkWrite(updates);
-    return result;
-};
-
-// TODO: Optimal solution for logging time-series data

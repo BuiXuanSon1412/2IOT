@@ -15,12 +15,10 @@ const sensorSchema = new mongoose.Schema(
         measures: {
             type: [{
                 measure: { type: String },
-                snapshotValue: { type: Number },
                 unit: { type: String }
             }],
             default: [{
                 measure: "",
-                snapshotValue: null,
                 unit: ""
             }],
             required: true

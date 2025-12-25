@@ -1,0 +1,24 @@
+services:
+  influxdb3-core:
+    image: influxdb:3-core
+    ports:
+      - "8086:8086"
+    restart: on-failure:3
+    volumes:
+      - ${INFLUXDB_LOCAL_DATA}:/var/lib/influxdb3/data
+      - ${INFLUXDB_LOCAL_PLUGINS}:/var/lib/influxdb3/plugins
+    command:
+      - serve
+      - --node-id=node0
+      - --object-store=file
+      - --data-dir=/var/lib/influxdb3/data
+      - --plugin-dir=/var/lib/influxdb3/plugins
+  
+  redis:
+    image: redis:7.4-alpine
+    restart: always
+    ports: 
+      - "6379:6379"
+    volumes: 
+      - ${REDIS_LOCAL_DATA}:/data
+    command: ["redis-server", "--appendonly", "yes"]

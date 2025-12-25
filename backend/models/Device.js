@@ -56,7 +56,8 @@ const deviceSchema = new mongoose.Schema(
                             value: { type: String }
                         }]
                     }
-                }]
+                }],
+                default: []
             },
 
             autoBehavior: {

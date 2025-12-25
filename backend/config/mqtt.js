@@ -1,31 +1,58 @@
 import mqtt from "mqtt";
-// MQTT Client Setup
-const clientId = `mqtt_${Math.random().toString(16).slice(3)}`;
+import { handleSensorMessage } from "../services/rule-engine/mqtt/mqtt.service.js";
 
-const connectUrl = `mqtt://test.mosquitto.org:1883`;
+let mqttClient = null;
 
-const client = mqtt.connect(connectUrl, {
-  clientId,
-  clean: true,
-  connectTimeout: 4000,
-  reconnectPeriod: 1000,
-});
+export function initMqttClient(brokerUrl) {
+    if (!brokerUrl) {
+        throw new Error("MQTT_BROKER_URL is not defined");
+    }
 
-export const TOPIC_STATUS = 'iot/project/status';
-export const TOPIC_CONTROL = 'iot/project/control';
+    if (mqttClient) {
+        return mqttClient;
+    }
 
-client.on('connect', () => {
-  console.log('Connected to MQTT Broker');
-  client.subscribe([TOPIC_STATUS], () => {
-    console.log(`Subscribed to topic '${TOPIC_STATUS}'`);
-  });
-});
+    const clientId = `mqtt_${Math.random().toString(16).slice(3)}`;
 
-client.on('message', (topic, message) => {
-  if (topic === TOPIC_STATUS) {
-    console.log(`Received message on '${TOPIC_STATUS}': ${message.toString()}`);
-    // TODO
-  }
-});
+    mqttClient = mqtt.connect(brokerUrl, {
+        clientId,
+        clean: true,
+        connectTimeout: 4000,
+        reconnectPeriod: 1000,
+    });
 
-export default client;
+    mqttClient.on("connect", () => {
+        console.log("MQTT connected");
+
+        mqttClient.subscribe([process.env.MQTT_TOPIC_STATUS], (err) => {
+            if (err) {
+                console.error("MQTT subscribe failed", err);
+            } else {
+                console.log(`Subscribed to ${process.env.MQTT_TOPIC_STATUS}`);
+            }
+        });
+    });
+
+    mqttClient.on("message", async (topic, message) => {
+        try {
+            if (topic === process.env.MQTT_TOPIC_STATUS) {
+                await handleSensorMessage(message.toString());
+            }
+        } catch (err) {
+            console.error("MQTT message handling failed", err);
+        }
+    });
+
+    mqttClient.on("error", (err) => {
+        console.error("MQTT error", err);
+    });
+
+    return mqttClient;
+}
+
+export function getMqttClient() {
+    if (!mqttClient) {
+        throw new Error("MQTT client not initialized");
+    }
+    return mqttClient;
+}
