@@ -1,5 +1,6 @@
 import { getMqttClient } from "../../../config/mqtt.js";
 import { writeSensorPoint } from "../influxDb/influxDb.service.js";
+import { evaluateRules } from "../rule/rule.service.js";
 
 export function publishControlCommand(homeId, devicePin, action) {
     const client = getMqttClient();
@@ -18,14 +19,13 @@ export function publishControlCommand(homeId, devicePin, action) {
 export async function handleSensorMessage(message) {
     const m = JSON.parse(message.toString());
 
-    // TODO: Change this logic to handle json array of objects
-    const homeId = m.homeId;
-    const sensorPin = m.sensorPin;
-    const measure = m.measure;
-    const value = m.value;
-    const timestamp = Date.now();
-
-    writeSensorPoint({ homeId, sensorPin, measure, value, timestamp });
-
-    await evaluateRules({ homeId, measure, value });
+    for (const obj of m) {
+        const homeId = obj.homeId;
+        const sensorPin = obj.sensorPin;
+        const measure = obj.measure;
+        const value = obj.value;
+        const timestamp = Date.now();
+        writeSensorPoint({ homeId, sensorPin, measure, value, timestamp });
+        await evaluateRules({ homeId, measure, value });
+    }
 }

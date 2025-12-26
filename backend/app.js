@@ -9,7 +9,7 @@ import { connectDB } from "./config/db.js";
 import dotenv from "dotenv";
 import "./config/mqtt.js";
 import { initRedisClient } from "./config/redis.js";
-import { loadRulesIntoRedis } from "./services/rule-engine/redis/redis.service.js";
+import { loadRulesIntoRedis, loadSchedulesIntoRedis, startScheduler } from "./services/rule-engine/redis/redis.service.js";
 import { initInfluxClient } from "./config/influxDb.js";
 import { initMqttClient } from "./config/mqtt.js";
 
@@ -37,6 +37,8 @@ async function bootstrap() {
   // Redis
   await initRedisClient(redisUrl);
   await loadRulesIntoRedis();
+  await loadSchedulesIntoRedis();
+  await startScheduler();
 
   // InfluxDB
   initInfluxClient({

@@ -154,9 +154,7 @@ router.patch('/permission', authenticate, authorize('admin'), changePermissionOf
  * {
  *   "devicePin": "D13",
  *   "measure": "temperature",
- *   "condition": "gt",
  *   "range": { "ge": 25 },
- *   "value": 30,
  *   "action": [
  *     { "name": "power", "value": "on" }
  *   ]
@@ -169,9 +167,7 @@ router.patch('/permission', authenticate, authorize('admin'), changePermissionOf
  *     "autoBehavior": [
  *       {
  *         "measure": "temperature",
- *         "condition": "gt",
  *         "range": { "ge": 25 },
- *         "value": 30,
  *         "action": [
  *           { "name": "power", "value": "on" }
  *         ]
@@ -196,9 +192,7 @@ router.patch('/auto-behavior/create', authenticate, authorize('admin', updateDev
  * {
  *   "devicePin": "D13",
  *   "measure": "temperature",
- *   "condition": "gt",
  *   "range": { "ge": 25 },
- *   "value": 30,
  *   "action": [
  *     { "name": "power", "value": "on" }
  *   ]
@@ -265,7 +259,7 @@ router.patch('/schedules/create', authenticate, authorize('admin', updateDeviceS
  *   "devicePin": "D13",
  *   "cronExpression": "0 18 * * *",
  *   "action": [
- *     { "name": "power", "value": "on" }
+ *     { "name": "power", "value": 1 }
  *   ]
  * }
  *

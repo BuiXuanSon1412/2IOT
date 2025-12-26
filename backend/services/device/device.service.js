@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import Device from "../../models/Device.js";
+import { publishControlCommand } from "../rule-engine/mqtt/mqtt.service.js";
+import { cacheScheduleRule, removeScheduleRule } from "../rule-engine/redis/redis.service.js";
 
 export const getDeviceById = async (deviceId) => {
     const device = await Device.findById({ deviceId });
@@ -56,15 +58,18 @@ export const updateDeviceStatusById = async (_id, newStatus) => {
         throw new Error("Invalid status");
     }
 
-    const newLastSeenAt = (newStatus == "online" ? new Date() : undefined);
-
-    const device = await Device.findOneAndUpdate(
-        { _id: _id },
-        { $set: { status: newStatus, lastSeenAt: newLastSeenAt } },
-        { new: true }
-    );
-
+    const device = await Device.findById(_id);
     if (!device) return null;
+
+    device.status = newStatus;
+    await device.save();
+
+    const action = [{
+        name: "power",
+        value: (newStatus === "online" ? 1 : 0)
+    }];
+
+    publishControlCommand(device.homeId, device.pin, action);
 
     return device;
 }
@@ -112,16 +117,6 @@ export const updateUserPermissionOnDevice = async (userId, devicePin, permission
     return device; 
 };
 
-function normalizeAutoBehavior(rule) {
-    return JSON.stringify({
-        measure: rule.measure,
-        range: rule.range ?? null,
-        action: [...rule.action]
-            .map(a => ({ name: a.name, value: a.value }))
-            .sort((a, b) => a.name.localeCompare(b.name))
-    });
-}
-
 export const addAutoBehavior = async (devicePin, measure, range, action) => {
     if (!devicePin) {
         throw new Error("devicePin is required");
@@ -138,58 +133,62 @@ export const addAutoBehavior = async (devicePin, measure, range, action) => {
     if (theActions.length === 0) {
         throw new Error("Action length is 0");
     }
-
-    const rule = {
-        measure,
-        range,
-        action: theActions
-    };
-
+    
     const device = await Device.findOne({ pin: devicePin });
-
     if (!device) {
         throw new Error("Device not found");
     }
 
-    const existingSet = new Set(device.settings.autoBehavior.map(normalizeAutoBehavior));
-    const newRuleKey = normalizeAutoBehavior(rule);
+    const rule = {
+        devicePin,
+        measure,
+        range,
+        action: theActions
+    };
+    const redisRule = buildRedisRule(rule);
 
-    if (existingSet.has(newRuleKey)) {
-        throw new Error("Duplicate auto behavior rule");
-    }
+    const exists = device.settings.autoBehavior.some(r =>
+        buildRedisRule({ ...r.toObject(), devicePin }) === redisRule
+    );
 
-    device.settings.autoBehavior.push(rule);
+    if (exists) throw new Error("Duplicate auto behavior rule");
+
+    device.settings.autoBehavior.push({ measure, range, action });
     await device.save();
+
+    await addRuleToRedis({
+        homeId: device.homeId.toString(),
+        measure,
+        rule: redisRule
+    });
 
     return device;
 };
 
 export const removeAutoBehavior = async (devicePin, measure, range, action) => {
-    if (!devicePin) {
-        throw new Error("devicePin and autoBehaviorId are required");
-    }
+    const device = await Device.findOne({ pin: devicePin });
+    if (!device) throw new Error("Device not found");
 
-    const updatedDevice = await Device.findOneAndUpdate(
-        { pin: devicePin },
-        {
-            $pull: {
-                "settings.autoBehavior": { 
-                    measure: measure,
-                    range: range,
-                    action: action
-                }
-            }
-        },
-        {
-            new: true
-        }
+    const redisRule = buildRedisRule({
+        devicePin,
+        measure,
+        range,
+        action
+    });
+
+    device.settings.autoBehavior = device.settings.autoBehavior.filter(r =>
+        buildRedisRule({ ...r.toObject(), devicePin }) !== redisRule
     );
 
-    if (!updatedDevice) {
-        throw new Error("Device not found or cannot remove the automation rule");
-    }
+    await device.save();
 
-    return updatedDevice;
+    await removeRuleFromRedis({
+        homeId: device.homeId.toString(),
+        measure,
+        rule: redisRule
+    });
+
+    return device;
 };
 
 function normalizeSchedule(rule) {
@@ -202,33 +201,25 @@ function normalizeSchedule(rule) {
 }
 
 export const addSchedules = async (devicePin, cronExpression, action) => {
-    if (!devicePin) {
-        throw new Error("devicePin is required");
-    }
+    if (!devicePin) throw new Error("devicePin is required");
+    if (!cronExpression || !action) throw new Error("Invalid schedule payload");
 
-    if (!cronExpression || !action) {
-        throw new Error("Invalid schedule payload");
-    }
-
-    let theActions = [];
-    if (!Array.isArray(action)) theActions.push(action);
-    else theActions.push(...action);
-
-    if (theActions.length === 0) {
-        throw new Error("Action length is 0");
-    }
+    const actions = Array.isArray(action) ? action : [action];
+    if (actions.length === 0) throw new Error("Action length is 0");
 
     const device = await Device.findOne({ pin: devicePin });
     if (!device) throw new Error("Device not found");
 
-    const existingSet = new Set(device.settings.schedules.map(normalizeSchedule));
-
     const schedule = {
-        cronExpression,
-        action: theActions
+        cronExpression: cronExpression.trim(),
+        action: actions
     };
 
     const newRuleKey = normalizeSchedule(schedule);
+    const existingSet = new Set(
+        device.settings.schedules.map(normalizeSchedule)
+    );
+
     if (existingSet.has(newRuleKey)) {
         throw new Error("Duplicate scheduled rule");
     }
@@ -236,32 +227,45 @@ export const addSchedules = async (devicePin, cronExpression, action) => {
     device.settings.schedules.push(schedule);
     await device.save();
 
+    await cacheScheduleRule({
+        homeId: device.homeId.toString(),
+        devicePin: device.pin,
+        cronExpression: schedule.cronExpression,
+        action: schedule.action
+    });
+
     return device;
 };
 
 export const removeSchedules = async (devicePin, cronExpression, action) => {
-    if (!devicePin) {
-        throw new Error("devicePin and autoBehaviorId are required");
-    }
+    if (!devicePin) throw new Error("devicePin is required");
 
-    const updatedDevice = await Device.findOneAndUpdate(
-        { pin: devicePin },
-        {
-            $pull: {
-                "settings.schedules": { 
-                    cronExpression: cronExpression,
-                    action: action
-                }
-            }
-        },
-        {
-            new: true
-        }
+    const actions = Array.isArray(action) ? action : [action];
+    const target = normalizeSchedule({
+        cronExpression: cronExpression.trim(),
+        action: actions
+    });
+
+    const device = await Device.findOne({ pin: devicePin });
+    if (!device) throw new Error("Device not found");
+
+    const idx = device.settings.schedules.findIndex(
+        s => normalizeSchedule(s) === target
     );
 
-    if (!updatedDevice) {
-        throw new Error("Device not found or cannot remove the automation rule");
+    if (idx === -1) {
+        throw new Error("Schedule not found");
     }
 
-    return updatedDevice;
+    const [removed] = device.settings.schedules.splice(idx, 1);
+    await device.save();
+
+    await removeScheduleRule({
+        homeId: device.homeId.toString(),
+        devicePin: device.pin,
+        cronExpression: removed.cronExpression,
+        action: removed.action
+    });
+
+    return device;
 };

@@ -40,7 +40,7 @@ const deviceSchema = new mongoose.Schema(
         },
 
         dependOn : { // e.g., measurements like: temperature, humidity
-            type: String,
+            type: [String],
             default: null
         },
 

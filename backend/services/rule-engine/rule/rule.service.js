@@ -1,17 +1,11 @@
-import { canTrigger, markTriggered } from "../redis/redis.service";
-import { publishControlCommand } from "../mqtt/mqtt.service";
+import { canTrigger, markTriggered } from "../redis/redis.service.js";
+import { publishControlCommand } from "../mqtt/mqtt.service.js";
+import { getRedisClient } from "../../../config/redis.js";
 
-export function evaluateCondition(op, actual, expected) {
-    switch (op) {
-        case "gt": return actual > expected;
-        case "ge": return actual >= expected;
-        case "lt": return actual < expected;
-        case "le": return actual <= expected;
-        case "eq": return actual === expected;
-        case "neq": return actual !== expected;
-        case "contains": return String(actual).includes(expected);
-        default: return false;
-    }
+function matchRange(value, range = {}) {
+    if (typeof range.ge === "number" && value < range.ge) return false;
+    if (typeof range.le === "number" && value > range.le) return false;
+    return true;
 }
 
 export async function evaluateRules({ homeId, measure, value }) {
@@ -21,10 +15,30 @@ export async function evaluateRules({ homeId, measure, value }) {
     for (let i = 0; i < rules.length; i++) {
         const rule = JSON.parse(rules[i]);
 
-        if (!evaluateCondition(rule.condition, value, rule.threshold)) continue;
+        if (!matchRange(value, rule.range)) continue;
+
         if (!(await canTrigger(redisKey, i))) continue;
 
-        publishControlCommand(homeId, rule.devicePin, rule.action);
+        publishControlCommand(
+            homeId,
+            rule.devicePin,
+            rule.action
+        );
+
         await markTriggered(redisKey, i);
     }
+}
+
+export async function executeOnce(rule) {
+    const redis = getRedisClient();
+
+    const bucket = Math.floor(Date.now() / 60000);
+    const execKey = `schedule:exec:${rule.devicePin}:${bucket}`;
+
+    const allowed = await redis.setNX(execKey, 1);
+    if (!allowed) return;
+
+    await redis.expire(execKey, process.env.EXEC_TTL);
+
+    publishControlCommand(rule.homeId, rule.devicePin, rule.action);
 }
