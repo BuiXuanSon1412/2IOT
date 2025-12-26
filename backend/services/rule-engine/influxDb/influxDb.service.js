@@ -1,9 +1,9 @@
 import { Point } from "@influxdata/influxdb-client";
 import { getInfluxWriteApi } from "../../../config/influxDb.js";
 
-export function writeSensorPoint({
+export async function writeSensorPoint({
     homeId,
-    sensorPin,
+    name,
     measure,
     value,
     timestamp
@@ -12,7 +12,7 @@ export function writeSensorPoint({
 
     const point = new Point(measure)
         .tag("homeId", String(homeId))
-        .tag("sensorPin", sensorPin)
+        .tag("sensorName", name)
         .floatField("value", Number(value))
         .timestamp(new Date(timestamp));
 

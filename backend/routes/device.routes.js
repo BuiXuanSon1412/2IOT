@@ -123,7 +123,7 @@ router.patch('/status', authenticate, toggleDeviceStatus);
  * @example Request
  * {
  *   "userId": "664fe21ac0e8b0a1c8d11111",
- *   "devicePin": "D13",
+ *   "name": "LED1",
  *   "permissionLevel": "control"
  * }
  *
@@ -152,7 +152,7 @@ router.patch('/permission', authenticate, authorize('admin'), changePermissionOf
  *
  * @example Request Body
  * {
- *   "devicePin": "D13",
+ *   "name": "LED1",
  *   "measure": "temperature",
  *   "range": { "ge": 25 },
  *   "action": [
@@ -190,7 +190,7 @@ router.patch('/auto-behavior/create', authenticate, authorize('admin', updateDev
  *
  * @example Request Body
  * {
- *   "devicePin": "D13",
+ *   "name": "LED1",
  *   "measure": "temperature",
  *   "range": { "ge": 25 },
  *   "action": [
@@ -220,7 +220,7 @@ router.patch('/auto-behavior/remove', authenticate, authorize('admin', deleteDev
  *
  * @example Request Body
  * {
- *   "devicePin": "D13",
+ *   "name": "LED1",
  *   "cronExpression": "0 18 * * *",
  *   "action": [
  *     { "name": "power", "value": "on" }
@@ -256,7 +256,7 @@ router.patch('/schedules/create', authenticate, authorize('admin', updateDeviceS
  *
  * @example Request Body
  * {
- *   "devicePin": "D13",
+ *   "name": "LED1",
  *   "cronExpression": "0 18 * * *",
  *   "action": [
  *     { "name": "power", "value": 1 }

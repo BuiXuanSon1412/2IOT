@@ -1,4 +1,5 @@
 import { InfluxDB } from "@influxdata/influxdb-client";
+import https from "https";
 
 let influx = null;
 let writeApi = null;
@@ -17,10 +18,25 @@ export function initInfluxClient({
         return { influx, writeApi };
     }
 
-    influx = new InfluxDB({ url, token });
+    const agent = new https.Agent({
+        keepAlive: true,
+        keepAliveMsecs: 30000,
+        maxSockets: 50,
+        maxFreeSockets: 10,
+        timeout: 60000
+    });
 
-    writeApi = influx.getWriteApi(org, bucket, "ms"); // millisecond precision
-    writeApi.useDefaultTags({ service: "iot-backend" });
+    influx = new InfluxDB({ url, token, transportOptions: {
+        agent
+    }});
+
+    writeApi = influx.getWriteApi(org, bucket, "ns", {
+        batchSize: 1000,
+        flushInterval: 5000,
+        maxRetries: 10,
+        maxRetryDelay: 15000
+    }); 
+    writeApi.useDefaultTags({ service: "2iot-dev" });
 
     console.log("InfluxDB connected");
 

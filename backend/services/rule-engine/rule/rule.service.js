@@ -9,6 +9,8 @@ function matchRange(value, range = {}) {
 }
 
 export async function evaluateRules({ homeId, measure, value }) {
+    const redis = getRedisClient();
+
     const redisKey = `rules:${homeId}:${measure}`;
     const rules = await redis.lRange(redisKey, 0, -1);
 
@@ -21,7 +23,7 @@ export async function evaluateRules({ homeId, measure, value }) {
 
         publishControlCommand(
             homeId,
-            rule.devicePin,
+            rule.name,
             rule.action
         );
 
@@ -33,12 +35,12 @@ export async function executeOnce(rule) {
     const redis = getRedisClient();
 
     const bucket = Math.floor(Date.now() / 60000);
-    const execKey = `schedule:exec:${rule.devicePin}:${bucket}`;
+    const execKey = `schedule:exec:${rule.name}:${bucket}`;
 
     const allowed = await redis.setNX(execKey, 1);
     if (!allowed) return;
 
     await redis.expire(execKey, process.env.EXEC_TTL);
 
-    publishControlCommand(rule.homeId, rule.devicePin, rule.action);
+    publishControlCommand(rule.homeId, rule.name, rule.action);
 }

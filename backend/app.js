@@ -34,7 +34,7 @@ app.use("/api/board", boardRoutes);
 async function bootstrap() {
   await connectDB(mongoDbUri);
 
-  // Redis
+  // Redis 
   await initRedisClient(redisUrl);
   await loadRulesIntoRedis();
   await loadSchedulesIntoRedis();
@@ -46,6 +46,15 @@ async function bootstrap() {
       token: process.env.INFLUX_TOKEN,
       org: process.env.INFLUX_ORG,
       bucket: process.env.INFLUX_BUCKET
+  });
+  process.on("SIGTERM", async () => {
+    try {
+        const writeApi = getInfluxWriteApi();
+        await writeApi.close();
+        console.log("Influx write buffer flushed");
+    } catch (e) {
+        console.error("Error closing Influx write API", e);
+    }
   });
 
   // MQTT
