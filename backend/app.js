@@ -16,7 +16,7 @@ import { initMqttClient } from "./config/mqtt.js";
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT;// || 3000;
+const port = process.env.PORT || 3000;
 const mongoDbUri = process.env.MONGO_URI || "mongodb://localhost:27017/2iot-dev";
 const redisUrl = process.env.REDIS_URL || "redis://localhost:6379"
 
@@ -46,15 +46,6 @@ async function bootstrap() {
       token: process.env.INFLUX_TOKEN,
       org: process.env.INFLUX_ORG,
       bucket: process.env.INFLUX_BUCKET
-  });
-  process.on("SIGTERM", async () => {
-    try {
-        const writeApi = getInfluxWriteApi();
-        await writeApi.close();
-        console.log("Influx write buffer flushed");
-    } catch (e) {
-        console.error("Error closing Influx write API", e);
-    }
   });
 
   // MQTT

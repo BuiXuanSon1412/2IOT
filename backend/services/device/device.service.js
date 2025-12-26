@@ -86,6 +86,60 @@ export const updateDevicePinByName = async (name, newPin) => {
     return device;
 };
 
+export const updateCharacteristicById = async (_id, userId, characteristics) => {
+    let theChars = [];
+    if (!Array.isArray(characteristics)) theChars.push(characteristics);
+    else theChars.push(...characteristics);
+
+    if (theChars.length === 0) {
+        throw new Error("Action length is 0");
+    }
+
+    const device = await Device.findById(_id);
+    if (!device) return null;
+
+    const permitted = device.permittedUsers?.some(p =>
+        p.userId.toString() === userId.toString() &&
+        ["configurable", "control"].includes(p.permissionLevel)
+    );
+
+    if (!permitted) {
+        throw new Error("Permission denied: user cannot update device characteristics");
+    }
+
+    const current = device.characteristic ?? [];
+
+    const map = new Map(
+        current.map(c => [c.name, c])
+    );
+
+    for (const incoming of theChars) {
+        if (!incoming?.name) continue;
+
+        if (map.has(incoming.name)) {
+            const existing = map.get(incoming.name);
+
+            if (incoming.value !== undefined) {
+                existing.value = String(incoming.value);
+            }
+
+            if (incoming.unit !== undefined) {
+                existing.unit = incoming.unit;
+            }
+        } else {
+            map.set(incoming.name, {
+                name: incoming.name,
+                unit: incoming.unit ?? null,
+                value: String(incoming.value ?? "")
+            });
+        }
+    }
+
+    device.characteristic = Array.from(map.values());
+
+    await device.save();
+    return device;
+};
 
 export const updateUserPermissionOnDevice = async (userId, name, permissionLevel) => {
     if (!["configurable", "control"].includes(permissionLevel)) {

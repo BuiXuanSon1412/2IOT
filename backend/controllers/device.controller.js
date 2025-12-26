@@ -7,7 +7,8 @@ import {
     addAutoBehavior,
     addSchedules,
     removeSchedules,
-    removeAutoBehavior
+    removeAutoBehavior,
+    updateCharacteristicById
 } from "../services/device/device.service.js";
 
 export async function fetchAllDevices (req, res) {
@@ -72,6 +73,18 @@ export async function changePermissionOfUserOnDevice (req, res) {
         if (!updatedDevice) return res.status(500).json({ message: "Device not found" });
 
         res.status(200).json(updatedDevice);
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export async function updateDeviceCharacteristicById (req, res) {
+    try {
+        const device = await updateCharacteristicById(req.body._id, req.user._id, req.body.characteristics);
+        if (!device) return res.status(500).json({ message: "Device not found" });
+
+        res.status(200).json(device);
     }
     catch (error) {
         res.status(500).json({ message: error.message });

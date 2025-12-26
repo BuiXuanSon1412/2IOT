@@ -37,7 +37,7 @@ export const createUser = async (name, email, password) => {
     return user;
 };
 
-export const createAdmin = async (email, password, name) => {
+export const createAdmin = async (email, password, name, homeId) => {
     const existing = await User.findOne({ email, role: "admin" });
     console.log(existing);
     if (existing) {
@@ -50,6 +50,7 @@ export const createAdmin = async (email, password, name) => {
         name,
         email,
         passwordHash,
+        homeId,
         role: "admin",
         createdAt: Date.now()
     });
