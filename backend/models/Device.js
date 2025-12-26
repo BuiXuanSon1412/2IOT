@@ -63,11 +63,15 @@ const deviceSchema = new mongoose.Schema(
             autoBehavior: {
                 type: [{
                     measure: { type: String },
-                    condition: { type: String, enum: ["gt", "ge", "lt", "le", "eq", "neq", "contains"] },
-                    value: { type: mongoose.Schema.Types.Mixed },
+                    range: {
+                        type: {
+                            le: { type: Number },
+                            ge: { type: Number }
+                        }
+                    },
                     action: {
                         type: [{
-                            name: { type: String },
+                            name: { type: String }, // characteristic
                             value: { type: String }
                         }]
                     }

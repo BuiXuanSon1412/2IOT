@@ -16,7 +16,7 @@ import { initMqttClient } from "./config/mqtt.js";
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;// || 3000;
 const mongoDbUri = process.env.MONGO_URI || "mongodb://localhost:27017/2iot-dev";
 const redisUrl = process.env.REDIS_URL || "redis://localhost:6379"
 
@@ -24,6 +24,7 @@ app.use(cors({ origin: process.env.CORS }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/devices", deviceRoutes);
 app.use("/api/sensors", sensorRoutes);

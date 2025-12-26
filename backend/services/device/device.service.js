@@ -111,3 +111,157 @@ export const updateUserPermissionOnDevice = async (userId, devicePin, permission
     await device.save();
     return device; 
 };
+
+function normalizeAutoBehavior(rule) {
+    return JSON.stringify({
+        measure: rule.measure,
+        range: rule.range ?? null,
+        action: [...rule.action]
+            .map(a => ({ name: a.name, value: a.value }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+    });
+}
+
+export const addAutoBehavior = async (devicePin, measure, range, action) => {
+    if (!devicePin) {
+        throw new Error("devicePin is required");
+    }
+
+    if (!measure || !range || !action) {
+        throw new Error("Invalid autoBehavior rule payload");
+    }
+
+    let theActions = [];
+    if (!Array.isArray(action)) theActions.push(action);
+    else theActions.push(...action);
+
+    if (theActions.length === 0) {
+        throw new Error("Action length is 0");
+    }
+
+    const rule = {
+        measure,
+        range,
+        action: theActions
+    };
+
+    const device = await Device.findOne({ pin: devicePin });
+
+    if (!device) {
+        throw new Error("Device not found");
+    }
+
+    const existingSet = new Set(device.settings.autoBehavior.map(normalizeAutoBehavior));
+    const newRuleKey = normalizeAutoBehavior(rule);
+
+    if (existingSet.has(newRuleKey)) {
+        throw new Error("Duplicate auto behavior rule");
+    }
+
+    device.settings.autoBehavior.push(rule);
+    await device.save();
+
+    return device;
+};
+
+export const removeAutoBehavior = async (devicePin, measure, range, action) => {
+    if (!devicePin) {
+        throw new Error("devicePin and autoBehaviorId are required");
+    }
+
+    const updatedDevice = await Device.findOneAndUpdate(
+        { pin: devicePin },
+        {
+            $pull: {
+                "settings.autoBehavior": { 
+                    measure: measure,
+                    range: range,
+                    action: action
+                }
+            }
+        },
+        {
+            new: true
+        }
+    );
+
+    if (!updatedDevice) {
+        throw new Error("Device not found or cannot remove the automation rule");
+    }
+
+    return updatedDevice;
+};
+
+function normalizeSchedule(rule) {
+    return JSON.stringify({
+        cronExpression: rule.cronExpression,
+        action: [...rule.action]
+            .map(a => ({ name: a.name, value: a.value }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+    });
+}
+
+export const addSchedules = async (devicePin, cronExpression, action) => {
+    if (!devicePin) {
+        throw new Error("devicePin is required");
+    }
+
+    if (!cronExpression || !action) {
+        throw new Error("Invalid schedule payload");
+    }
+
+    let theActions = [];
+    if (!Array.isArray(action)) theActions.push(action);
+    else theActions.push(...action);
+
+    if (theActions.length === 0) {
+        throw new Error("Action length is 0");
+    }
+
+    const device = await Device.findOne({ pin: devicePin });
+    if (!device) throw new Error("Device not found");
+
+    const existingSet = new Set(device.settings.schedules.map(normalizeSchedule));
+
+    const schedule = {
+        cronExpression,
+        action: theActions
+    };
+
+    const newRuleKey = normalizeSchedule(schedule);
+    if (existingSet.has(newRuleKey)) {
+        throw new Error("Duplicate scheduled rule");
+    }
+
+    device.settings.schedules.push(schedule);
+    await device.save();
+
+    return device;
+};
+
+export const removeSchedules = async (devicePin, cronExpression, action) => {
+    if (!devicePin) {
+        throw new Error("devicePin and autoBehaviorId are required");
+    }
+
+    const updatedDevice = await Device.findOneAndUpdate(
+        { pin: devicePin },
+        {
+            $pull: {
+                "settings.schedules": { 
+                    cronExpression: cronExpression,
+                    action: action
+                }
+            }
+        },
+        {
+            new: true
+        }
+    );
+
+    if (!updatedDevice) {
+        throw new Error("Device not found or cannot remove the automation rule");
+    }
+
+    return updatedDevice;
+};
