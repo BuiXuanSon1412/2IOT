@@ -8,7 +8,7 @@ const navigationItems = [
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
-export default function Sidebar({ currentScreen, setCurrentScreen, onLogout }) {
+export default function Sidebar({ currentScreen, setCurrentScreen, onLogout, currentUser }) {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-6 border-b border-gray-200">
