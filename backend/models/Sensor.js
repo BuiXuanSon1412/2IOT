@@ -6,15 +6,19 @@ const sensorSchema = new mongoose.Schema(
             type: String
         },
 
+        homeId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Home",
+            required: true
+        },
+
         measures: {
             type: [{
                 measure: { type: String },
-                snapshotValue: { type: Number },
                 unit: { type: String }
             }],
             default: [{
                 measure: "",
-                snapshotValue: null,
                 unit: ""
             }],
             required: true

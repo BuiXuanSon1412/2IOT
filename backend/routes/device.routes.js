@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticate, authorize } from '../middleware/auth/auth.js';
-import { addListOfDevices, changePermissionOfUserOnDevice, deleteDevices, fetchAllDevices, toggleDeviceStatus } from '../controllers/device.controller.js';
+import { addListOfDevices, changePermissionOfUserOnDevice, deleteDeviceAutoBehavior, deleteDevices, deleteDeviceSchedules, fetchAllDevices, toggleDeviceStatus, updateDeviceAutoBehavior, updateDeviceSchedules } from '../controllers/device.controller.js';
 
 const router = express.Router();
 
@@ -142,5 +142,139 @@ router.patch('/status', authenticate, toggleDeviceStatus);
  * { "message": "Device not found" }
  */
 router.patch('/permission', authenticate, authorize('admin'), changePermissionOfUserOnDevice);
+
+/**
+ * @route PATCH /api/devices/auto-behavior/create
+ * @access Admin
+ *
+ * @headers
+ * Authorization: Bearer <ACCESS_TOKEN>
+ *
+ * @example Request Body
+ * {
+ *   "devicePin": "D13",
+ *   "measure": "temperature",
+ *   "range": { "ge": 25 },
+ *   "action": [
+ *     { "name": "power", "value": "on" }
+ *   ]
+ * }
+ *
+ * @example Response 200
+ * {
+ *   "_id": "6651a4f2c0e8b0a1c8d12345",
+ *   "settings": {
+ *     "autoBehavior": [
+ *       {
+ *         "measure": "temperature",
+ *         "range": { "ge": 25 },
+ *         "action": [
+ *           { "name": "power", "value": "on" }
+ *         ]
+ *       }
+ *     ]
+ *   }
+ * }
+ *
+ * @example Response 500
+ * { "message": "Duplicate auto behavior rule" }
+ */
+router.patch('/auto-behavior/create', authenticate, authorize('admin', updateDeviceAutoBehavior));
+
+/** 
+ * @route PATCH /api/devices/auto-behavior/remove
+ * @access Admin
+ *
+ * @headers
+ * Authorization: Bearer <ACCESS_TOKEN>
+ *
+ * @example Request Body
+ * {
+ *   "devicePin": "D13",
+ *   "measure": "temperature",
+ *   "range": { "ge": 25 },
+ *   "action": [
+ *     { "name": "power", "value": "on" }
+ *   ]
+ * }
+ *
+ * @example Response 200
+ * {
+ *   "_id": "6651a4f2c0e8b0a1c8d12345",
+ *   "settings": {
+ *     "autoBehavior": []
+ *   }
+ * }
+ *
+ * @example Response 500
+ * { "message": "Device not found or cannot remove the automation rule" }
+*/
+router.patch('/auto-behavior/remove', authenticate, authorize('admin', deleteDeviceAutoBehavior));
+
+/**
+ * @route PATCH /api/devices/schedules/create
+ * @access Admin
+ *
+ * @headers
+ * Authorization: Bearer <ACCESS_TOKEN>
+ *
+ * @example Request Body
+ * {
+ *   "devicePin": "D13",
+ *   "cronExpression": "0 18 * * *",
+ *   "action": [
+ *     { "name": "power", "value": "on" }
+ *   ]
+ * }
+ *
+ * @example Response 200
+ * {
+ *   "_id": "6651a4f2c0e8b0a1c8d12345",
+ *   "settings": {
+ *     "schedules": [
+ *       {
+ *         "cronExpression": "0 18 * * *",
+ *         "action": [
+ *           { "name": "power", "value": "on" }
+ *         ]
+ *       }
+ *     ]
+ *   }
+ * }
+ *
+ * @example Response 500
+ * { "message": "Duplicate scheduled rule" }
+ */
+router.patch('/schedules/create', authenticate, authorize('admin', updateDeviceSchedules));
+
+/**
+ * @route PATCH /api/devices/schedules/remove
+ * @access Admin
+ *
+ * @headers
+ * Authorization: Bearer <ACCESS_TOKEN>
+ *
+ * @example Request Body
+ * {
+ *   "devicePin": "D13",
+ *   "cronExpression": "0 18 * * *",
+ *   "action": [
+ *     { "name": "power", "value": 1 }
+ *   ]
+ * }
+ *
+ * @example Response 200
+ * {
+ *   "_id": "6651a4f2c0e8b0a1c8d12345",
+ *   "settings": {
+ *     "schedules": []
+ *   }
+ * }
+ *
+ * @example Response 500
+ * { "message": "Device not found or cannot remove the automation rule" }
+ */
+router.patch('/schedules/remove', authenticate, authorize('admin', deleteDeviceSchedules));
+
 
 export default router;

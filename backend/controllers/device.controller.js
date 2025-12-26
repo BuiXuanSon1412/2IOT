@@ -3,7 +3,11 @@ import {
     addDevices,
     updateDeviceStatusById,
     updateUserPermissionOnDevice,
-    removeDevicesById
+    removeDevicesById,
+    addAutoBehavior,
+    addSchedules,
+    removeSchedules,
+    removeAutoBehavior
 } from "../services/device/device.service.js";
 
 export async function fetchAllDevices (req, res) {
@@ -49,13 +53,12 @@ export async function deleteDevices (req, res) {
 }
 
 export async function toggleDeviceStatus (req, res) {
-    const { _id, newStatus } = req.body;
-    if (typeof _id === 'undefined' || typeof newStatus === 'undefined') {
+    if (typeof req.body._id === 'undefined' || typeof req.body.newStatus === 'undefined') {
         return res.status(400).json({ message: "Device id and new status are required" });
     }
 
     try {
-        const updatedDevice = await updateDeviceStatusById(_id, newStatus);
+        const updatedDevice = await updateDeviceStatusById(req.body._id, req.body.newStatus);
         res.status(200).json(updatedDevice);
     }
     catch (error) {
@@ -65,9 +68,70 @@ export async function toggleDeviceStatus (req, res) {
 
 export async function changePermissionOfUserOnDevice (req, res) {
     try {
-        const { userId, devicePin, permissionLevel } = req.body;
-        const updatedDevice = updateUserPermissionOnDevice(userId, devicePin, permissionLevel);
+        const updatedDevice = updateUserPermissionOnDevice(req.body.userId, req.body.devicePin, req.body.permissionLevel);
         if (!updatedDevice) return res.status(500).json({ message: "Device not found" });
+
+        res.status(200).json(updatedDevice);
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export async function updateDeviceAutoBehavior (req, res) {
+    try {
+        const devicePin = req.body.devicePin;
+        const measure = req.body.measure;
+        const range = req.body.range;
+        const action = req.body.action;
+
+        const updatedDevice = await addAutoBehavior(devicePin, measure, range, action);
+
+        res.status(200).json(updatedDevice);
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export async function updateDeviceSchedules (req, res) {
+    try {
+        const devicePin = req.body.devicePin;
+        const cronExpression = req.body.cronExpression;
+        const action = req.body.action;
+
+        const updatedDevice = await addSchedules(devicePin, cronExpression, action);
+
+        res.status(200).json(updatedDevice);
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export async function deleteDeviceAutoBehavior (req, res) {
+    try {
+        const devicePin = req.body.devicePin;
+        const measure = req.body.measure;
+        const range = req.body.range;
+        const action = req.body.action;
+
+        const updatedDevice = await removeAutoBehavior(devicePin, measure, range, action);
+
+        res.status(200).json(updatedDevice);
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export async function deleteDeviceSchedules (req, res) {
+    try {
+        const devicePin = req.body.devicePin;
+        const cronExpression = req.body.cronExpression;
+        const action = req.body.action;
+
+        const updatedDevice = await removeSchedules(devicePin, cronExpression, action);
 
         res.status(200).json(updatedDevice);
     }

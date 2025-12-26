@@ -16,13 +16,16 @@ Run Frontend:
 ```
 
 3.Backend setup <br/>
-Open another terminal:
+Open another terminal, run InfluxDB and Redis:
+```shell
+  cd backend/
+  docker compose down -v
+  docker compose up
+```
+
+Open another terminal, run the server:
 ```shell
   cd backend/
   npm install
-```
-
-Run Backend:
-```shell
   npm run server
 ```

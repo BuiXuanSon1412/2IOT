@@ -10,7 +10,7 @@ const router = express.Router();
  * @example Request Body
  * {
  *     "email": "admin@mail.com",
- *     "password": "password123"
+ *     "password": "password123",
  * }
  * 
  * @example Response
@@ -43,6 +43,7 @@ router.post('/login', login);
  *   "name": "John Doe"
  *   "email": "user@mail.com",
  *   "password": "password123",
+ *   "joinCode": "JOINCODE123-1672531200000" // admin can edit this but should be unique
  * }
  *
  * @example Response
