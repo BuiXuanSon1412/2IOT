@@ -7,7 +7,8 @@ import {
     addAutoBehavior,
     addSchedules,
     removeSchedules,
-    removeAutoBehavior
+    removeAutoBehavior,
+    updateCharacteristicById
 } from "../services/device/device.service.js";
 
 export async function fetchAllDevices (req, res) {
@@ -68,7 +69,7 @@ export async function toggleDeviceStatus (req, res) {
 
 export async function changePermissionOfUserOnDevice (req, res) {
     try {
-        const updatedDevice = updateUserPermissionOnDevice(req.body.userId, req.body.devicePin, req.body.permissionLevel);
+        const updatedDevice = updateUserPermissionOnDevice(req.body.userId, req.body.name, req.body.permissionLevel);
         if (!updatedDevice) return res.status(500).json({ message: "Device not found" });
 
         res.status(200).json(updatedDevice);
@@ -78,14 +79,26 @@ export async function changePermissionOfUserOnDevice (req, res) {
     }
 }
 
+export async function updateDeviceCharacteristicById (req, res) {
+    try {
+        const device = await updateCharacteristicById(req.body._id, req.user._id, req.body.characteristics);
+        if (!device) return res.status(500).json({ message: "Device not found" });
+
+        res.status(200).json(device);
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
 export async function updateDeviceAutoBehavior (req, res) {
     try {
-        const devicePin = req.body.devicePin;
+        const name = req.body.name;
         const measure = req.body.measure;
         const range = req.body.range;
         const action = req.body.action;
 
-        const updatedDevice = await addAutoBehavior(devicePin, measure, range, action);
+        const updatedDevice = await addAutoBehavior(name, measure, range, action);
 
         res.status(200).json(updatedDevice);
     }
@@ -96,11 +109,11 @@ export async function updateDeviceAutoBehavior (req, res) {
 
 export async function updateDeviceSchedules (req, res) {
     try {
-        const devicePin = req.body.devicePin;
+        const name = req.body.name;
         const cronExpression = req.body.cronExpression;
         const action = req.body.action;
 
-        const updatedDevice = await addSchedules(devicePin, cronExpression, action);
+        const updatedDevice = await addSchedules(name, cronExpression, action);
 
         res.status(200).json(updatedDevice);
     }
@@ -111,12 +124,12 @@ export async function updateDeviceSchedules (req, res) {
 
 export async function deleteDeviceAutoBehavior (req, res) {
     try {
-        const devicePin = req.body.devicePin;
+        const name = req.body.name;
         const measure = req.body.measure;
         const range = req.body.range;
         const action = req.body.action;
 
-        const updatedDevice = await removeAutoBehavior(devicePin, measure, range, action);
+        const updatedDevice = await removeAutoBehavior(name, measure, range, action);
 
         res.status(200).json(updatedDevice);
     }
@@ -127,11 +140,11 @@ export async function deleteDeviceAutoBehavior (req, res) {
 
 export async function deleteDeviceSchedules (req, res) {
     try {
-        const devicePin = req.body.devicePin;
+        const name = req.body.name;
         const cronExpression = req.body.cronExpression;
         const action = req.body.action;
 
-        const updatedDevice = await removeSchedules(devicePin, cronExpression, action);
+        const updatedDevice = await removeSchedules(name, cronExpression, action);
 
         res.status(200).json(updatedDevice);
     }

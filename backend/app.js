@@ -16,7 +16,7 @@ import { initMqttClient } from "./config/mqtt.js";
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT;// || 3000;
+const port = process.env.PORT || 3000;
 const mongoDbUri = process.env.MONGO_URI || "mongodb://localhost:27017/2iot-dev";
 const redisUrl = process.env.REDIS_URL || "redis://localhost:6379"
 
@@ -34,7 +34,7 @@ app.use("/api/board", boardRoutes);
 async function bootstrap() {
   await connectDB(mongoDbUri);
 
-  // Redis
+  // Redis 
   await initRedisClient(redisUrl);
   await loadRulesIntoRedis();
   await loadSchedulesIntoRedis();

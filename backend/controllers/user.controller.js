@@ -24,7 +24,7 @@ export async function addNewUser (req, res) { // add one user at a time
 export async function createNewAdmin (req, res) {
     try {
         const newAdmin = req.body;
-        const addedAdmin = await createAdmin(newAdmin.email, newAdmin.password, newAdmin.name);
+        const addedAdmin = await createAdmin(newAdmin.email, newAdmin.password, newAdmin.name, newAdmin.homeId);
         res.status(201).json({ message: "Added admin", newAdmin: addedAdmin });
     }
     catch (error) {

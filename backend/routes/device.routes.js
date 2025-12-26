@@ -1,6 +1,6 @@
 import express from 'express';
 import { authenticate, authorize } from '../middleware/auth/auth.js';
-import { addListOfDevices, changePermissionOfUserOnDevice, deleteDeviceAutoBehavior, deleteDevices, deleteDeviceSchedules, fetchAllDevices, toggleDeviceStatus, updateDeviceAutoBehavior, updateDeviceSchedules } from '../controllers/device.controller.js';
+import { addListOfDevices, changePermissionOfUserOnDevice, deleteDeviceAutoBehavior, deleteDevices, deleteDeviceSchedules, fetchAllDevices, toggleDeviceStatus, updateDeviceAutoBehavior, updateDeviceCharacteristicById, updateDeviceSchedules } from '../controllers/device.controller.js';
 
 const router = express.Router();
 
@@ -123,7 +123,7 @@ router.patch('/status', authenticate, toggleDeviceStatus);
  * @example Request
  * {
  *   "userId": "664fe21ac0e8b0a1c8d11111",
- *   "devicePin": "D13",
+ *   "name": "LED1",
  *   "permissionLevel": "control"
  * }
  *
@@ -152,7 +152,7 @@ router.patch('/permission', authenticate, authorize('admin'), changePermissionOf
  *
  * @example Request Body
  * {
- *   "devicePin": "D13",
+ *   "name": "LED1",
  *   "measure": "temperature",
  *   "range": { "ge": 25 },
  *   "action": [
@@ -190,7 +190,7 @@ router.patch('/auto-behavior/create', authenticate, authorize('admin', updateDev
  *
  * @example Request Body
  * {
- *   "devicePin": "D13",
+ *   "name": "LED1",
  *   "measure": "temperature",
  *   "range": { "ge": 25 },
  *   "action": [
@@ -220,7 +220,7 @@ router.patch('/auto-behavior/remove', authenticate, authorize('admin', deleteDev
  *
  * @example Request Body
  * {
- *   "devicePin": "D13",
+ *   "name": "LED1",
  *   "cronExpression": "0 18 * * *",
  *   "action": [
  *     { "name": "power", "value": "on" }
@@ -256,7 +256,7 @@ router.patch('/schedules/create', authenticate, authorize('admin', updateDeviceS
  *
  * @example Request Body
  * {
- *   "devicePin": "D13",
+ *   "name": "LED1",
  *   "cronExpression": "0 18 * * *",
  *   "action": [
  *     { "name": "power", "value": 1 }
@@ -276,5 +276,52 @@ router.patch('/schedules/create', authenticate, authorize('admin', updateDeviceS
  */
 router.patch('/schedules/remove', authenticate, authorize('admin', deleteDeviceSchedules));
 
+/**
+ * @route PATCH /api/devices/characteristic/
+ * @access user
+ *
+ * @headers
+ * Authorization: Bearer <ACCESS_TOKEN>
+ *
+ * @example Request Body characteristic is an object
+ * {
+ *   "_id": "example_device_id",
+ *   "characteristics": {
+ *      "name": "fanSpeed",
+ *      "unit": "rpm",
+ *      "value": 200
+ *   }
+ * }
+ * 
+ * @example Request Body characteristic is an array of objects
+ * {
+ *   "_id": "example_device_id",
+ *   "characteristics": [
+ *      {
+ *          "name": "fanSpeed",
+ *          "unit": "rpm",
+ *          "value": 200
+ *      },
+ *      {
+ *          "name": "characteristic2",
+ *          "unit": "%",
+ *          "value": 50
+ *      },
+ *      ...
+ *   ]
+ * }
+ *
+ * @example Response 200
+ * {
+ *   "_id": "6651a4f2c0e8b0a1c8d12345",
+ *   "settings": {
+ *     "schedules": []
+ *   }
+ * }
+ *
+ * @example Response 500
+ * { "message": "Device not found" }
+ */
+router.patch('/characteristic/', authenticate, updateDeviceCharacteristicById);
 
 export default router;

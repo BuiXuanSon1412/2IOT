@@ -16,7 +16,7 @@ export async function loadRulesIntoRedis() {
             const redisKey = `rules:${homeId}:${rule.measure}`;
 
             const ruleEntry = {
-                devicePin: device.pin,
+                name: device.name,
                 range: rule.range,
                 action: rule.action,
                 cooldownMs: process.env.RULE_COOLDOWN || 30000,
@@ -39,7 +39,7 @@ export async function loadSchedulesIntoRedis() {
         for (const schedule of device.settings.schedules) {
             await cacheScheduleRule({
                 homeId: device.homeId.toString(),
-                devicePin: device.pin,
+                name: device.name,
                 cronExpression: schedule.cronExpression,
                 action: schedule.action
             });
@@ -66,9 +66,9 @@ export async function markTriggered(redisKey, ruleIndex) {
     await redis.set(cooldownKey, Date.now());
 }
 
-export function buildRedisRule({ devicePin, measure, range, action }) {
+export function buildRedisRule({ deviceName, measure, range, action }) {
     return JSON.stringify({
-        devicePin,
+        name: deviceName,
         measure,
         range,
         action: [...action]
@@ -107,7 +107,7 @@ function expandCron(cronExpression) {
 
 export async function cacheScheduleRule({
     homeId,
-    devicePin,
+    name,
     cronExpression,
     action
 }) {
@@ -121,7 +121,7 @@ export async function cacheScheduleRule({
                     const key = `schedule:${m}:${h}:${dow}:${dom}`;
                     await redis.rPush(key, JSON.stringify({
                         homeId,
-                        devicePin,
+                        name,
                         cronExpression,
                         action
                     }));
@@ -130,7 +130,7 @@ export async function cacheScheduleRule({
 
 export async function removeScheduleRule({
     homeId,
-    devicePin,
+    name,
     cronExpression,
     action
 }) {
@@ -139,7 +139,7 @@ export async function removeScheduleRule({
 
     const rule = JSON.stringify({
         homeId,
-        devicePin,
+        name,
         cronExpression,
         action
     });

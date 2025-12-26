@@ -35,8 +35,6 @@ const deviceSchema = new mongoose.Schema(
 
         pin: {
             type: String,
-            required: true,
-            unique: true
         },
 
         dependOn : { // e.g., measurements like: temperature, humidity

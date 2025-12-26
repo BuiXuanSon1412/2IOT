@@ -106,6 +106,6 @@ router.delete('/', authenticate, authorize('admin'), removeUser);
 router.patch('/role', authenticate, authorize('admin'), changeUserRole);
 
 // for admin testing
-router.post('/admin/create', authenticate, authorize('admin'), createNewAdmin);
+router.post('/admin/create', createNewAdmin);
 
 export default router;
