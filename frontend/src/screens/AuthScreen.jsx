@@ -23,9 +23,58 @@ export default function AuthScreen({ onLogin }) {
     if (error) setError('');
   };
 
+  const validateForm = () => {
+    if (!isLoginMode) {
+      // Signup validation
+      if (!formData.name.trim()) {
+        setError('Please enter your full name');
+        return false;
+      }
+      if (formData.name.trim().length < 2) {
+        setError('Name must be at least 2 characters');
+        return false;
+      }
+      if (!formData.joinCode.trim()) {
+        setError('Please enter a home join code');
+        return false;
+      }
+    }
+
+    // Common validation for both login and signup
+    if (!formData.email.trim()) {
+      setError('Please enter your email address');
+      return false;
+    }
+
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address');
+      return false;
+    }
+
+    if (!formData.password) {
+      setError('Please enter your password');
+      return false;
+    }
+
+    if (!isLoginMode && formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Validate form before submission
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -34,7 +83,12 @@ export default function AuthScreen({ onLogin }) {
       if (isLoginMode) {
         result = await authService.login(formData.email, formData.password);
       } else {
-        result = await authService.signup(formData.name, formData.email, formData.password, formData.joinCode);
+        result = await authService.signup(
+          formData.name,
+          formData.email,
+          formData.password,
+          formData.joinCode
+        );
       }
 
       if (result.success) {
@@ -51,6 +105,12 @@ export default function AuthScreen({ onLogin }) {
     }
   };
 
+  const handleModeSwitch = () => {
+    setIsLoginMode(!isLoginMode);
+    setError('');
+    setFormData({ name: '', email: '', password: '', joinCode: '' });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
@@ -59,7 +119,9 @@ export default function AuthScreen({ onLogin }) {
             <Home className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">SmartHome</h1>
-          <p className="text-gray-600 mt-2">Intelligent Living Management</p>
+          <p className="text-gray-600 mt-2">
+            {isLoginMode ? 'Welcome back!' : 'Create your account'}
+          </p>
         </div>
 
         {/* Error Message */}
@@ -75,7 +137,7 @@ export default function AuthScreen({ onLogin }) {
           {!isLoginMode && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name
+                Full Name *
               </label>
               <input
                 type="text"
@@ -91,7 +153,7 @@ export default function AuthScreen({ onLogin }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
+              Email Address *
             </label>
             <input
               type="email"
@@ -106,7 +168,7 @@ export default function AuthScreen({ onLogin }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
+              Password *
             </label>
             <div className="relative">
               <input
@@ -130,12 +192,18 @@ export default function AuthScreen({ onLogin }) {
                 )}
               </button>
             </div>
+            {!isLoginMode && (
+              <p className="text-xs text-gray-500 mt-1">
+                Must be at least 6 characters
+              </p>
+            )}
           </div>
 
+          {/* Join Code - only for signup */}
           {!isLoginMode && (
-            <div className="mb-4">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Home Join Code
+                Home Join Code *
               </label>
               <input
                 type="text"
@@ -146,8 +214,12 @@ export default function AuthScreen({ onLogin }) {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
                 required={!isLoginMode}
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Ask your home administrator for this code
+              </p>
             </div>
           )}
+
           <button
             type="submit"
             disabled={isLoading}
@@ -162,7 +234,7 @@ export default function AuthScreen({ onLogin }) {
                 Processing...
               </span>
             ) : (
-              isLoginMode ? 'Sign In' : 'Sign Up'
+              isLoginMode ? 'Sign In' : 'Create Account'
             )}
           </button>
         </form>
@@ -171,11 +243,7 @@ export default function AuthScreen({ onLogin }) {
         <div className="mt-6 text-center">
           <button
             type="button"
-            onClick={() => {
-              setIsLoginMode(!isLoginMode);
-              setError('');
-              setFormData({ name: '', email: '', password: '' });
-            }}
+            onClick={handleModeSwitch}
             className="text-indigo-600 hover:text-indigo-700 font-medium text-sm"
           >
             {isLoginMode
@@ -183,6 +251,15 @@ export default function AuthScreen({ onLogin }) {
               : 'Already have an account? Sign in'}
           </button>
         </div>
+
+        {/* Help text for testing */}
+        {!isLoginMode && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-xs text-blue-800">
+              <strong>💡 Testing?</strong> Use join code: <code className="bg-blue-100 px-2 py-1 rounded">TEST-JOIN-CODE-2024</code>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -117,16 +117,16 @@ function UserManagement({ currentUser }) {
                 </td>
                 <td className="px-6 py-4">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.role === 'admin'
-                      ? 'bg-purple-100 text-purple-700'
-                      : 'bg-blue-100 text-blue-700'
+                    ? 'bg-purple-100 text-purple-700'
+                    : 'bg-blue-100 text-blue-700'
                     }`}>
                     {user.role === 'admin' ? '👑 Admin' : '👤 User'}
                   </span>
                 </td>
                 <td className="px-6 py-4">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.status === 'active'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-red-100 text-red-700'
                     }`}>
                     {user.status}
                   </span>
@@ -166,6 +166,252 @@ function UserManagement({ currentUser }) {
     </div>
   );
 }
+
+function DeviceManagement({ currentUser }) {
+  const [devices, setDevices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddDevice, setShowAddDevice] = useState(false);
+
+  useEffect(() => {
+    if (currentUser.role === 'admin') {
+      fetchDevices();
+    }
+  }, [currentUser]);
+
+  const fetchDevices = async () => {
+    setLoading(true);
+    const result = await apiService.getAllDevices();
+    if (result.success) {
+      setDevices(result.data);
+    }
+    setLoading(false);
+  };
+
+  const handleDeleteDevice = async (deviceId) => {
+    if (window.confirm('Are you sure you want to delete this device?')) {
+      const result = await apiService.deleteDevices(deviceId);
+      if (result.success) {
+        setDevices(devices.filter(d => d._id !== deviceId));
+      }
+    }
+  };
+
+  if (currentUser.role !== 'admin') {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="text-center py-8">
+          <Shield className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+          <p className="text-gray-600">Administrator access required</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return <div className="text-center py-8">Loading devices...</div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">Device Management</h3>
+          <p className="text-sm text-gray-600 mt-1">Add, remove, and configure devices</p>
+        </div>
+        <button
+          onClick={() => setShowAddDevice(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+        >
+          <Plus className="w-4 h-4" />
+          Add Device
+        </button>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Device</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Type</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Location</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {devices.map((device) => (
+              <tr key={device._id} className="hover:bg-gray-50">
+                <td className="px-6 py-4">
+                  <div>
+                    <p className="font-medium text-gray-900">{device.name}</p>
+                    <p className="text-sm text-gray-500">{device.pin}</p>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">
+                    {device.deviceType}
+                  </span>
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-600">
+                  {device.area?.room}, {device.area?.floor}
+                </td>
+                <td className="px-6 py-4">
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${device.status === 'online'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-red-100 text-red-700'
+                    }`}>
+                    {device.status}
+                  </span>
+                </td>
+                <td className="px-6 py-4">
+                  <button
+                    onClick={() => handleDeleteDevice(device._id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                    title="Delete Device"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {showAddDevice && (
+        <AddDeviceModal
+          onClose={() => setShowAddDevice(false)}
+          onAdd={async (device) => {
+            const result = await apiService.addDevices(device);
+            if (result.success) {
+              fetchDevices();
+              setShowAddDevice(false);
+            }
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Add Device Modal Component
+function AddDeviceModal({ onClose, onAdd }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    deviceType: 'light',
+    pin: '',
+    area: {
+      room: '',
+      floor: 'Floor 1'
+    }
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onAdd(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h3 className="text-xl font-bold text-gray-900">Add New Device</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Device Name</label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              placeholder="Living Room Light"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Device Type</label>
+            <select
+              value={formData.deviceType}
+              onChange={(e) => setFormData({ ...formData, deviceType: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="light">Light</option>
+              <option value="fan">Fan</option>
+              <option value="lock">Lock</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Pin</label>
+            <input
+              type="text"
+              required
+              value={formData.pin}
+              onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              placeholder="D13"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Room</label>
+            <input
+              type="text"
+              required
+              value={formData.area.room}
+              onChange={(e) => setFormData({
+                ...formData,
+                area: { ...formData.area, room: e.target.value }
+              })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              placeholder="Living Room"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Floor</label>
+            <select
+              value={formData.area.floor}
+              onChange={(e) => setFormData({
+                ...formData,
+                area: { ...formData.area, floor: e.target.value }
+              })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="Floor 1">Floor 1</option>
+              <option value="Floor 2">Floor 2</option>
+              <option value="Floor 3">Floor 3</option>
+            </select>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+            >
+              Add Device
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+// Add to the tab content section
+{ activeTab === 'devices' && <DeviceManagement currentUser={currentUser} /> }
 
 // Add User Modal
 function AddUserModal({ onClose, onAdd }) {
@@ -677,6 +923,7 @@ export default function SettingsScreen() {
   const tabs = [
     { id: 'account', label: 'Account', icon: Users, adminOnly: false },
     { id: 'users', label: 'User Management', icon: Shield, adminOnly: true },
+    { id: 'devices', label: 'Device Management', icon: Settings, adminOnly: true }, // NEW
     { id: 'permissions', label: 'Device Permissions', icon: Key, adminOnly: true },
     { id: 'notifications', label: 'Notifications', icon: Bell, adminOnly: false },
     { id: 'system', label: 'System', icon: Globe, adminOnly: false },
@@ -709,8 +956,8 @@ export default function SettingsScreen() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-3 font-medium transition border-b-2 ${activeTab === tab.id
-                  ? 'text-indigo-600 border-indigo-600'
-                  : 'text-gray-600 border-transparent hover:text-gray-900'
+                ? 'text-indigo-600 border-indigo-600'
+                : 'text-gray-600 border-transparent hover:text-gray-900'
                 }`}
             >
               <Icon className="w-4 h-4" />

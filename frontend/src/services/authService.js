@@ -57,12 +57,11 @@ class AuthService {
         body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Login failed');
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
 
       // Store tokens and user data
       this.setTokens(data.tokens.access.token, data.tokens.refresh.token);
@@ -75,9 +74,16 @@ class AuthService {
       };
     } catch (error) {
       console.error('Login error:', error);
+
+      // Better error messages for different scenarios
+      let errorMessage = error.message;
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorMessage = 'Cannot connect to server. Please ensure the backend is running.';
+      }
+
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }
@@ -93,12 +99,17 @@ class AuthService {
         body: JSON.stringify({ name, email, password, joinCode }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Signup failed');
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        // Handle specific error cases
+        if (response.status === 409) {
+          throw new Error('This email is already registered');
+        } else if (response.status === 400) {
+          throw new Error(data.message || 'Invalid join code or missing fields');
+        }
+        throw new Error(data.message || 'Signup failed');
+      }
 
       // Store tokens and user data
       this.setTokens(data.tokens.access.token, data.tokens.refresh.token);
@@ -111,37 +122,98 @@ class AuthService {
       };
     } catch (error) {
       console.error('Signup error:', error);
+
+      // Better error messages for different scenarios
+      let errorMessage = error.message;
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorMessage = 'Cannot connect to server. Please ensure the backend is running.';
+      }
+
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   }
 
   // Logout
   async logout() {
-    try {
-      const refreshToken = this.getRefreshToken();
+    const refreshToken = this.getRefreshToken();
+    const accessToken = this.getAccessToken();
 
-      if (refreshToken) {
+    try {
+      if (refreshToken && accessToken) {
         const response = await fetch(API_ENDPOINTS.AUTH.LOGOUT, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.getAccessToken()}`,
+            'Authorization': `Bearer ${accessToken}`,
           },
           body: JSON.stringify({ refreshToken }),
         });
 
         if (!response.ok) {
-          console.error('Logout request failed');
+          const error = await response.json();
+          console.error('Logout request failed:', error.message);
+          // Don't throw - we still want to clear local data
         }
       }
+
+      return {
+        success: true,
+        message: 'Logged out successfully'
+      };
     } catch (error) {
       console.error('Logout error:', error);
+      // Even if API call fails, we still want to clear local auth
+      return {
+        success: true, // Still return success since we'll clear local data
+        message: 'Logged out (server may be unavailable)'
+      };
     } finally {
-      // Always clear local auth data
+      // Always clear local auth data, even if API call fails
       this.clearAuth();
+    }
+  }
+
+  // Refresh access token (bonus feature)
+  async refreshAccessToken() {
+    try {
+      const refreshToken = this.getRefreshToken();
+
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+
+      const response = await fetch(API_ENDPOINTS.AUTH.REFRESH, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Token refresh failed');
+      }
+
+      // Update access token
+      localStorage.setItem(this.TOKEN_KEY, data.tokens.access.token);
+
+      return {
+        success: true,
+        accessToken: data.tokens.access.token,
+      };
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      // Clear auth if refresh fails
+      this.clearAuth();
+      return {
+        success: false,
+        error: error.message,
+      };
     }
   }
 }
