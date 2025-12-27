@@ -20,7 +20,14 @@ const port = process.env.PORT || 3000;
 const mongoDbUri = process.env.MONGO_URI || "mongodb://localhost:27017/2iot-dev";
 const redisUrl = process.env.REDIS_URL || "redis://localhost:6379"
 
-app.use(cors({ origin: process.env.CORS }));
+// FIXED: Better CORS configuration
+app.use(cors({
+  origin: process.env.CORS || "http://localhost:5173",
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -42,10 +49,10 @@ async function bootstrap() {
 
   // InfluxDB
   initInfluxClient({
-      url: process.env.INFLUX_URL,
-      token: process.env.INFLUX_TOKEN,
-      org: process.env.INFLUX_ORG,
-      bucket: process.env.INFLUX_BUCKET
+    url: process.env.INFLUX_URL,
+    token: process.env.INFLUX_TOKEN,
+    org: process.env.INFLUX_ORG,
+    bucket: process.env.INFLUX_BUCKET
   });
 
   // MQTT
