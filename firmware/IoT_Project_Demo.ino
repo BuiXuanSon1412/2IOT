@@ -17,8 +17,8 @@
 #define LED_PIN 23
 #define DHTPIN 15
 #define DHTTYPE DHT22
-#define MOTOR_IN1 19 // PWM
-#define MOTOR_IN2 18
+#define MOTOR_IN1 18 // PWM
+#define MOTOR_IN2 19
 
 const char* HOME_ID = "IoT_20251_House";
 const char* BRIGHTNESS_SENSOR_NAME = "BH1750_Light_Sensor";
