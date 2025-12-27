@@ -8,6 +8,7 @@ export default function AuthScreen({ onLogin }) {
     name: '',
     email: '',
     password: '',
+    joinCode: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -33,7 +34,7 @@ export default function AuthScreen({ onLogin }) {
       if (isLoginMode) {
         result = await authService.login(formData.email, formData.password);
       } else {
-        result = await authService.signup(formData.name, formData.email, formData.password);
+        result = await authService.signup(formData.name, formData.email, formData.password, formData.joinCode);
       }
 
       if (result.success) {
@@ -131,6 +132,22 @@ export default function AuthScreen({ onLogin }) {
             </div>
           </div>
 
+          {!isLoginMode && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Home Join Code
+              </label>
+              <input
+                type="text"
+                name="joinCode"
+                value={formData.joinCode}
+                onChange={handleChange}
+                placeholder="Enter your home's unique code"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                required={!isLoginMode}
+              />
+            </div>
+          )}
           <button
             type="submit"
             disabled={isLoading}
