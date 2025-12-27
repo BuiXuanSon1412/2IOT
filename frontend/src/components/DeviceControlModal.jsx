@@ -1,24 +1,44 @@
 import { useState } from 'react';
-import { X, Power, ThermometerSun, Droplets, Wind, Lightbulb, Lock, Unlock, Activity, Clock, AlertTriangle, Fan as FanIcon, RotateCw, Timer } from 'lucide-react';
 import { StatCard } from './StatCard';
-
+import { X, Power, ThermometerSun, Droplets, Wind, Lightbulb, Lock, Unlock, Activity, Clock, AlertTriangle, Fan as FanIcon, RotateCw, Timer, AlertCircle } from 'lucide-react';
+// Find DeviceControlModal component
 export function DeviceControlModal({ device, onClose, onUpdate }) {
   const [deviceState, setDeviceState] = useState(device);
+  const [isUpdating, setIsUpdating] = useState(false); // ADD THIS
+  const [updateError, setUpdateError] = useState(null); // ADD THIS
 
-  const handleUpdate = (updates) => {
+  const handleUpdate = async (updates) => { // Make it async
+    setIsUpdating(true); // ADD THIS
+    setUpdateError(null); // ADD THIS
+
     const newState = { ...deviceState, ...updates };
+
+    // Optimistically update UI
     setDeviceState(newState);
-    onUpdate && onUpdate(newState);
+
+    // ADD ERROR HANDLING
+    try {
+      if (onUpdate) {
+        await onUpdate(newState);
+      }
+    } catch (error) {
+      // Revert on error
+      setDeviceState(deviceState);
+      setUpdateError(error.message || 'Failed to update device');
+      console.error('Update error:', error);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const renderDeviceControl = () => {
     switch (deviceState.type) {
       case 'fan':
-        return <FanControl device={deviceState} onUpdate={handleUpdate} />;
+        return <FanControl device={deviceState} onUpdate={handleUpdate} isUpdating={isUpdating} />;
       case 'light':
-        return <LightControl device={deviceState} onUpdate={handleUpdate} />;
+        return <LightControl device={deviceState} onUpdate={handleUpdate} isUpdating={isUpdating} />;
       case 'lock':
-        return <LockControl device={deviceState} onUpdate={handleUpdate} />;
+        return <LockControl device={deviceState} onUpdate={handleUpdate} isUpdating={isUpdating} />;
       case 'dht22':
         return <DHT22Sensor device={deviceState} />;
       case 'mq2':
@@ -57,6 +77,30 @@ export function DeviceControlModal({ device, onClose, onUpdate }) {
             <X className="w-6 h-6 text-gray-600" />
           </button>
         </div>
+
+        {/* ADD ERROR DISPLAY */}
+        {updateError && (
+          <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm text-red-800">{updateError}</p>
+              <button
+                onClick={() => setUpdateError(null)}
+                className="text-xs text-red-600 hover:text-red-800 mt-1"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ADD LOADING OVERLAY */}
+        {isUpdating && (
+          <div className="mx-6 mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+            <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <p className="text-sm text-blue-800">Updating device...</p>
+          </div>
+        )}
 
         {/* Content */}
         <div className="p-6 space-y-6">

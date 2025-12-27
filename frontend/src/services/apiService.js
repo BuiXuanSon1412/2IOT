@@ -2,10 +2,13 @@ import { API_ENDPOINTS } from '../config/api';
 import authService from './authService';
 
 class ApiService {
+  constructor() {
+    this.TIMEOUT_MS = 10000; // 10 seconds
+  }
   // Helper method to make authenticated requests
   async fetchWithAuth(url, options = {}) {
     const token = authService.getAccessToken();
-    
+
     const headers = {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -15,11 +18,18 @@ class ApiService {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
+    // ADD TIMEOUT LOGIC
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT_MS);
+
     try {
       const response = await fetch(url, {
         ...options,
         headers,
+        signal: controller.signal, // ADD THIS
       });
+
+      clearTimeout(timeoutId); // ADD THIS
 
       const data = await response.json();
 
@@ -32,8 +42,17 @@ class ApiService {
         data,
       };
     } catch (error) {
+      clearTimeout(timeoutId); // ADD THIS
       console.error('API Error:', error);
-      
+
+      // ADD TIMEOUT ERROR HANDLING
+      if (error.name === 'AbortError') {
+        return {
+          success: false,
+          error: 'Request timed out. Please check your connection.',
+        };
+      }
+
       // Handle network errors
       if (error instanceof TypeError && error.message.includes('fetch')) {
         return {
@@ -45,7 +64,7 @@ class ApiService {
       // Handle 401 - token expired
       if (error.message.includes('401')) {
         authService.clearAuth();
-        window.location.href = '/'; // Redirect to login
+        window.location.href = '/';
         return {
           success: false,
           error: 'Session expired. Please login again.',
@@ -59,6 +78,7 @@ class ApiService {
     }
   }
 
+
   // ============= DEVICE SERVICES =============
 
   async getAllDevices() {
@@ -70,7 +90,7 @@ class ApiService {
   async addDevices(devices) {
     // Ensure devices is an array
     const devicesList = Array.isArray(devices) ? devices : [devices];
-    
+
     return this.fetchWithAuth(API_ENDPOINTS.DEVICES.ADD, {
       method: 'POST',
       body: JSON.stringify({ devices: devicesList }),
@@ -80,7 +100,7 @@ class ApiService {
   async deleteDevices(ids) {
     // Ensure ids is an array
     const idsList = Array.isArray(ids) ? ids : [ids];
-    
+
     return this.fetchWithAuth(API_ENDPOINTS.DEVICES.DELETE, {
       method: 'DELETE',
       body: JSON.stringify({ ids: idsList }),
@@ -95,7 +115,7 @@ class ApiService {
   }
 
   async updateDeviceCharacteristics(deviceId, characteristics) {
-    return this.fetchWithAuth(`${API_ENDPOINTS.DEVICES.GET_ALL}/characteristic`, {
+    return this.fetchWithAuth(`${API_ENDPOINTS.DEVICES.UPDATE_CHARACTERISTIC}`, {
       method: 'PATCH',
       body: JSON.stringify({ _id: deviceId, characteristics }),
     });
@@ -147,7 +167,7 @@ class ApiService {
   async addSensors(sensors) {
     // Ensure sensors is an array
     const sensorsList = Array.isArray(sensors) ? sensors : [sensors];
-    
+
     return this.fetchWithAuth(API_ENDPOINTS.SENSORS.GET_ALL, {
       method: 'POST',
       body: JSON.stringify({ sensors: sensorsList }),
