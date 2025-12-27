@@ -139,21 +139,21 @@ class ApiService {
   }
 
   async removeAutoBehavior(deviceName, measure, range, action) {
-    return this.fetchWithAuth(`${API_ENDPOINTS.DEVICES.GET_ALL} / auto - behavior / remove`, {
+    return this.fetchWithAuth(API_ENDPOINTS.DEVICES.AUTO_BEHAVIOR.REMOVE, {
       method: 'PATCH',
       body: JSON.stringify({ name: deviceName, measure, range, action }),
     });
   }
 
   async addSchedule(deviceName, cronExpression, action) {
-    return this.fetchWithAuth(`${API_ENDPOINTS.DEVICES.GET_ALL} / schedules / create`, {
+    return this.fetchWithAuth(API_ENDPOINTS.DEVICES.SCHEDULES.CREATE, {
       method: 'PATCH',
       body: JSON.stringify({ name: deviceName, cronExpression, action }),
     });
   }
 
   async removeSchedule(deviceName, cronExpression, action) {
-    return this.fetchWithAuth(`${API_ENDPOINTS.DEVICES.GET_ALL} / schedules / remove`, {
+    return this.fetchWithAuth(API_ENDPOINTS.DEVICES.SCHEDULES.REMOVE, {
       method: 'PATCH',
       body: JSON.stringify({ name: deviceName, cronExpression, action }),
     });
