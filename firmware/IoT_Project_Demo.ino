@@ -44,8 +44,8 @@ std::vector<int> fan_config_act;
 
 const char* mqtt_server = "test.mosquitto.org"; 
 const int mqtt_port = 1883;
-const char* mqtt_topic_pub = "iot/project/status1";
-const char* mqtt_topic_sub = "iot/project/control1";
+const char* mqtt_topic_pub = "iot/project/status";
+const char* mqtt_topic_sub = "iot/project/control";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
