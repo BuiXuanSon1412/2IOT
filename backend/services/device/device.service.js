@@ -62,6 +62,7 @@ export const updateDeviceStatusById = async (_id, newStatus) => {
     if (!device) return null;
 
     device.status = newStatus;
+    console.log(device.status, " ", newStatus);
     await device.save();
 
     const action = [{
@@ -69,7 +70,7 @@ export const updateDeviceStatusById = async (_id, newStatus) => {
         value: (newStatus === "online" ? 1 : 0)
     }];
 
-    publishControlCommand(device.homeId, device.name, action); 
+    //publishControlCommand(device.homeId, device.name, action); 
 
     return device;
 }

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Thermometer, Droplets, Wind, Activity, AlertCircle } from 'lucide-react';
 import { DeviceControlModal } from '../components/DeviceControlModal';
 import { StatCard } from '../components/StatCard';
 import apiService from '../services/apiService';
@@ -151,7 +150,7 @@ export default function MonitorScreen() {
     try {
       // Update device characteristics
       const result = await apiService.updateDeviceCharacteristics(
-        updatedDevice.id,
+        updatedDevice._id,
         updatedDevice.characteristic
       );
 
@@ -159,14 +158,14 @@ export default function MonitorScreen() {
         // Update local state
         setDevices(prev => ({
           ...prev,
-          [updatedDevice.id]: updatedDevice
+          [updatedDevice._id]: updatedDevice
         }));
 
         // Send control command via MQTT
-        const controlResult = await apiService.sendControlCommand(
-          updatedDevice.name,
-          updatedDevice.characteristic
-        );
+        //const controlResult = await apiService.sendControlCommand(
+        //  updatedDevice.name,
+        //  updatedDevice.characteristic
+        //);
 
         if (!controlResult.success) {
           console.warn('Control command failed:', controlResult.error);
@@ -183,11 +182,12 @@ export default function MonitorScreen() {
   };
 
   const handleToggleStatus = async (deviceId, currentStatus) => {
-    const newStatus = currentStatus === 'online' ? 'offline' : 'online';
-
+    const newStatus = currentStatus;
+    // const newStatus = currentStatus == 'online' ? 'offline' : 'online';
+    console.log("handleToggleStatus", newStatus);
     try {
       const result = await apiService.toggleDeviceStatus(deviceId, newStatus);
-
+      console.log(newStatus)
       if (result.success) {
         setDevices(prev => ({
           ...prev,
@@ -419,7 +419,7 @@ export default function MonitorScreen() {
                 {room.devices.map((deviceId, dIdx) => {
                   const device = devices[deviceId] || sensors[deviceId];
                   if (!device) return null;
-
+                  // console.log(device.status)
                   return (
                     <g
                       key={dIdx}
@@ -469,6 +469,7 @@ export default function MonitorScreen() {
           device={selectedDevice}
           onClose={() => setSelectedDevice(null)}
           onUpdate={handleDeviceUpdate}
+          onToggle={handleToggleStatus}
         />
       )}
     </div>

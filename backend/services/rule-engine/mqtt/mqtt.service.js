@@ -4,7 +4,7 @@ import { evaluateRules } from "../rule/rule.service.js";
 
 export function publishControlCommand(homeId, name, action) {
     const client = getMqttClient();
-    const topic = process.env.MQTT_CONTROL_TOPIC;
+    const topic = process.env.MQTT_TOPIC_CONTROL;
 
     const payload = {
         name, // LED1 / FAN1
@@ -23,7 +23,7 @@ export async function handleSensorMessage(message) {
         const measure = obj.measure; // temperature 
         const value = obj.value;
         const timestamp = Date.now();
-        await writeSensorPoint({ homeId, name, measure, value, timestamp });
+        writeSensorPoint({ homeId, name, measure, value, timestamp });
         await evaluateRules({ homeId, measure, value });
     }
 }
