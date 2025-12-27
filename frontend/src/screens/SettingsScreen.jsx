@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Shield, Key, Bell, Globe, Palette, Database, Lock, Plus, Edit, Trash2, Check, X } from 'lucide-react';
+import { Users, Shield, Key, Bell, Globe, Palette, Database, Lock, Plus, Edit, Trash2, Check, X, Settings } from 'lucide-react';
 import { mockDeviceDetails } from '../data/mockData';
 
 // ============= USER MANAGEMENT (ADMIN ONLY) =============
@@ -411,7 +411,7 @@ function AddDeviceModal({ onClose, onAdd }) {
   );
 }
 // Add to the tab content section
-{ activeTab === 'devices' && <DeviceManagement currentUser={currentUser} /> }
+// { activeTab === 'devices' && <DeviceManagement currentUser={currentUser} /> }
 
 // Add User Modal
 function AddUserModal({ onClose, onAdd }) {
