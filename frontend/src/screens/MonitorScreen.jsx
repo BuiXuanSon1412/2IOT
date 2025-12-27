@@ -182,7 +182,8 @@ export default function MonitorScreen() {
   };
 
   const handleToggleStatus = async (deviceId, currentStatus) => {
-    const newStatus = currentStatus == 'online' ? 'offline' : 'online';
+    const newStatus = currentStatus;
+    // const newStatus = currentStatus == 'online' ? 'offline' : 'online';
     console.log("handleToggleStatus", newStatus);
     try {
       const result = await apiService.toggleDeviceStatus(deviceId, newStatus);

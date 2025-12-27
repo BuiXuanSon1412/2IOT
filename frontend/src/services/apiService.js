@@ -118,7 +118,7 @@ class ApiService {
 
   async updateDeviceCharacteristics(deviceId, characteristics) {
     return this.fetchWithAuth(`${API_ENDPOINTS.DEVICES.UPDATE_CHARACTERISTIC}`, {
-      method: 'PATCH',
+      method: 'PATCH', 
       body: JSON.stringify({ _id: deviceId, characteristics }),
     });
   }
