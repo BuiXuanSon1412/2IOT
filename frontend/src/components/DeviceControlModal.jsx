@@ -33,9 +33,9 @@ export function DeviceControlModal({ device, onClose, onUpdate }) {
 
   const renderDeviceControl = () => {
     switch (deviceState.type) {
-      case 'fan':
+      case 'Fan':
         return <FanControl device={deviceState} onUpdate={handleUpdate} isUpdating={isUpdating} />;
-      case 'light':
+      case 'Light':
         return <LightControl device={deviceState} onUpdate={handleUpdate} isUpdating={isUpdating} />;
       case 'lock':
         return <LockControl device={deviceState} onUpdate={handleUpdate} isUpdating={isUpdating} />;
@@ -513,8 +513,8 @@ function LockControl({ device, onUpdate, isUpdating }) {
           })}
           disabled={isUpdating}
           className={`px-6 py-3 rounded-lg font-semibold transition ${locked
-              ? 'bg-orange-600 hover:bg-orange-700 text-white'
-              : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+            ? 'bg-orange-600 hover:bg-orange-700 text-white'
+            : 'bg-indigo-600 hover:bg-indigo-700 text-white'
             } ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {locked ? 'Unlock Door' : 'Lock Door'}
