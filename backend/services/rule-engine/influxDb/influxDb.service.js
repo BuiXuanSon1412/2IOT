@@ -1,7 +1,7 @@
 import { Point } from "@influxdata/influxdb-client";
 import { getInfluxWriteApi } from "../../../config/influxDb.js";
 
-export async function writeSensorPoint({
+export function writeSensorPoint({
     homeId,
     name,
     measure,
@@ -17,4 +17,5 @@ export async function writeSensorPoint({
         .timestamp(new Date(timestamp));
 
     influx.writePoint(point);
+    // console.log("Written point:", point);
 }

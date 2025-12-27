@@ -1,5 +1,6 @@
 import { InfluxDB } from "@influxdata/influxdb-client";
 import https from "https";
+import http from "http";
 
 let influx = null;
 let writeApi = null;
@@ -18,12 +19,16 @@ export function initInfluxClient({
         return { influx, writeApi };
     }
 
-    const agent = new https.Agent({
+    const isHttps = url.startsWith("https://");
+    const AgentClass = isHttps ? https.Agent : http.Agent;
+    
+    const agent = new AgentClass({
         keepAlive: true,
-        keepAliveMsecs: 30000,
-        maxSockets: 50,
-        maxFreeSockets: 10,
-        timeout: 60000
+        keepAliveMsecs: 1000,
+        maxSockets: 10,
+        maxFreeSockets: 5,
+        timeout: 30000,
+        freeSocketTimeout: 30000
     });
 
     influx = new InfluxDB({ url, token, transportOptions: {
@@ -31,10 +36,10 @@ export function initInfluxClient({
     }});
 
     writeApi = influx.getWriteApi(org, bucket, "ns", {
-        batchSize: 1000,
-        flushInterval: 5000,
-        maxRetries: 10,
-        maxRetryDelay: 15000
+        batchSize: 500,
+        flushInterval: 1000,
+        maxRetries: 5,
+        maxRetryDelay: 3000
     }); 
     writeApi.useDefaultTags({ service: "2iot-dev" });
 
@@ -48,4 +53,23 @@ export function getInfluxWriteApi() {
         throw new Error("InfluxDB not initialized");
     }
     return writeApi;
+}
+
+export async function closeInfluxClient() {
+    if (writeApi) {
+        try {
+            await writeApi.flush();
+            console.log("InfluxDB write API flushed");
+        } catch (error) {
+            console.error("Error flushing InfluxDB:", error);
+        }
+    }
+    if (influx) {
+        try {
+            await influx.close();
+            console.log("InfluxDB connection closed");
+        } catch (error) {
+            console.error("Error closing InfluxDB:", error);
+        }
+    }
 }

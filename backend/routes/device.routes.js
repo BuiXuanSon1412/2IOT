@@ -115,7 +115,7 @@ router.delete('/', authenticate, authorize('admin'), deleteDevices);
  * @example Response 400
  * { "message": "Device id and new status are required" }
  */
-router.patch('/status', authenticate, toggleDeviceStatus); 
+router.patch('/status', authenticate, toggleDeviceStatus);  
 
 /**
  * @route PATCH /api/devices/permission

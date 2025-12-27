@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StatCard } from './StatCard';
 import { X, Power, ThermometerSun, Droplets, Wind, Lightbulb, Lock, Unlock, Activity, Clock, AlertTriangle, Fan as FanIcon, RotateCw, Timer, AlertCircle } from 'lucide-react';
 // Find DeviceControlModal component
-export function DeviceControlModal({ device, onClose, onUpdate }) {
+export function DeviceControlModal({ device, onClose, onUpdate, onToggle }) {
   const [deviceState, setDeviceState] = useState(device);
   const [isUpdating, setIsUpdating] = useState(false); // ADD THIS
   const [updateError, setUpdateError] = useState(null); // ADD THIS
@@ -23,6 +23,31 @@ export function DeviceControlModal({ device, onClose, onUpdate }) {
       }
     } catch (error) {
       // Revert on error
+      // setDeviceState(deviceState);
+      // setUpdateError(error.message || 'Failed to update device');
+      console.error('Update error:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+
+  const handleToggle = async (updates) => { // Make it async
+    setIsUpdating(true); // ADD THIS
+    setUpdateError(null); // ADD THIS
+    const newState = { ...deviceState, ...updates };
+    console.log("handleToggle", newState);
+
+    // Optimistically update UI
+    setDeviceState(newState);
+
+    // ADD ERROR HANDLING
+    try {
+      if (onToggle) {
+        await onToggle(newState._id, newState.status);
+      }
+    } catch (error) {
+      // Revert on error
       setDeviceState(deviceState);
       setUpdateError(error.message || 'Failed to update device');
       console.error('Update error:', error);
@@ -32,11 +57,11 @@ export function DeviceControlModal({ device, onClose, onUpdate }) {
   };
 
   const renderDeviceControl = () => {
-    switch (deviceState.type) {
-      case 'fan':
-        return <FanControl device={deviceState} onUpdate={handleUpdate} isUpdating={isUpdating} />;
-      case 'light':
-        return <LightControl device={deviceState} onUpdate={handleUpdate} isUpdating={isUpdating} />;
+    switch (deviceState.deviceType) {
+      case 'Fan':
+        return <FanControl device={deviceState} onUpdate={handleUpdate} onToggle={handleToggle} isUpdating={isUpdating} />;
+      case 'Light':
+        return <LightControl device={deviceState} onUpdate={handleUpdate} onToggle={handleToggle} isUpdating={isUpdating} />;
       case 'lock':
         return <LockControl device={deviceState} onUpdate={handleUpdate} isUpdating={isUpdating} />;
       case 'dht22':
@@ -129,61 +154,47 @@ export function DeviceControlModal({ device, onClose, onUpdate }) {
 }
 
 // Fan Control Component
-function FanControl({ device, onUpdate, isUpdating }) {
-  // Helper to get characteristic value
+function FanControl({ device, onUpdate, onToggle, isUpdating }) {
+  // 1. Determine Power State from 'status' field
+  const isPowered = device.status === 'online';
+
+  // 2. Get Characteristic Values
   const getCharValue = (charName, defaultValue = 0) => {
     const char = device.characteristic?.find(c => c.name === charName);
-    return char ? parseInt(char.value) || defaultValue : defaultValue;
+    return char ? parseInt(char.value) || 0 : defaultValue;
   };
 
-  // Helper to check if device is powered on
-  const isPoweredOn = () => {
-    const powerChar = device.characteristic?.find(c => c.name === 'power');
-    return powerChar ? (powerChar.value === '1' || powerChar.value === 'on' || powerChar.value === 'true') : false;
+  // Map JSON "Fan speed" to local variable
+  const currentSpeed = getCharValue('Fan speed', 0);
+  //const timer = getCharValue('timer', 0);
+
+  // 3. Handle Power Toggle (Updates root 'status' field)
+  const handlePowerToggle = () => {
+    onToggle({
+      ...device,
+      status: isPowered ? 'offline' : 'online'
+    });
   };
 
-  // Get current values from characteristic array
-  const power = isPoweredOn();
-  const speed = getCharValue('speed', 0);
-  const timer = getCharValue('timer', 0);
-
-  // Helper to update characteristics
+  // 4. Handle Characteristic Updates (Speed, Timer)
   const updateCharacteristic = (updates) => {
-    // Get existing characteristics
     const currentChars = device.characteristic || [];
-
-    // Create a map for easy lookup
     const charMap = new Map(currentChars.map(c => [c.name, c]));
 
-    // Update or add new characteristics
     Object.entries(updates).forEach(([name, value]) => {
+      const existingChar = charMap.get(name);
       charMap.set(name, {
         name,
-        unit: getUnitForChar(name),
-        value: String(value)
+        unit: existingChar?.unit || (name === 'Fan speed' ? 'level' : 'min'),
+        value: String(value) // Ensuring value is a string prevents toString errors
       });
     });
 
-    // Convert back to array
-    const updatedCharacteristics = Array.from(charMap.values());
-
-    // Call parent update with new characteristic array
+    // FIX: Pass a NEW object with the NEW characteristic array
     onUpdate({
       ...device,
-      characteristic: updatedCharacteristics
+      characteristic: Array.from(charMap.values())
     });
-  };
-
-  // Helper to determine unit based on characteristic name
-  const getUnitForChar = (charName) => {
-    const unitMap = {
-      'speed': '',        // Speed level (0-5)
-      'rpm': 'rpm',       // RPM
-      'timer': 'min',     // Timer in minutes
-      'power': '',        // Power (0/1 or on/off)
-      'brightness': '%',  // Brightness percentage
-    };
-    return unitMap[charName] || '';
   };
 
   return (
@@ -192,143 +203,127 @@ function FanControl({ device, onUpdate, isUpdating }) {
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
         <div className="flex items-center gap-3">
           <Power className="w-5 h-5 text-gray-700" />
-          <span className="font-semibold text-gray-900">Power</span>
+          <span className="font-semibold text-gray-900">Device Status</span>
         </div>
         <button
-          onClick={() => updateCharacteristic({ power: power ? '0' : '1' })}
+          onClick={handlePowerToggle}
           disabled={isUpdating}
-          className={`relative w-14 h-8 rounded-full transition ${power ? 'bg-green-500' : 'bg-gray-300'
+          className={`relative w-14 h-8 rounded-full transition ${isPowered ? 'bg-green-500' : 'bg-gray-300'
             } ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          <span className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${power ? 'translate-x-6' : ''
+          <span className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${isPowered ? 'translate-x-6' : ''
             }`}></span>
         </button>
       </div>
 
-      {power && (
-        <>
-          {/* Speed Control */}
-          <div>
-            <div className="flex justify-between items-center mb-3">
-              <label className="text-sm font-medium text-gray-700">
-                Fan Speed
-              </label>
-              <span className="text-lg font-bold text-gray-900">
-                {speed === 0 ? 'Off' : `Level ${speed}`}
-              </span>
-            </div>
-            <div className="grid grid-cols-6 gap-2">
-              {[0, 1, 2, 3, 4, 5].map((speedLevel) => (
-                <button
-                  key={speedLevel}
-                  onClick={() => updateCharacteristic({ speed: speedLevel })}
-                  disabled={isUpdating}
-                  className={`py-3 px-2 rounded-lg font-medium transition ${speed === speedLevel
+      {/* Controls (Only visible/active when Online) */}
+      <div className={`transition-opacity duration-200 ${isPowered ? 'opacity-100' : 'opacity-50 pointer-events-none filter blur-[1px]'}`}>
+
+        {/* Speed Control */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-3">
+            <label className="text-sm font-medium text-gray-700">
+              Fan Speed
+            </label>
+            <span className="text-lg font-bold text-gray-900">
+              {currentSpeed === 0 ? 'Zero' : `Level ${currentSpeed}`}
+            </span>
+          </div>
+          <div className="grid grid-cols-6 gap-2">
+            {[0, 80, 110, 150, 200, 255].map((speedLevel) => (
+              <button
+                key={speedLevel}
+                onClick={() => updateCharacteristic({ 'Fan speed': speedLevel })}
+                disabled={isUpdating || !isPowered}
+                className={`py-3 px-2 rounded-lg font-medium transition ${currentSpeed === speedLevel
                     ? 'bg-indigo-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    } ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {speedLevel === 0 ? 'Off' : speedLevel}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Timer Control */}
-          <div>
-            <div className="flex justify-between items-center mb-3">
-              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                <Timer className="w-4 h-4" />
-                Auto-Off Timer
-              </label>
-              <span className="text-sm font-semibold text-gray-900">
-                {timer === 0 ? 'Off' : `${timer} mins`}
-              </span>
-            </div>
-            <div className="grid grid-cols-5 gap-2">
-              {[0, 30, 60, 120, 480].map((time) => (
-                <button
-                  key={time}
-                  onClick={() => updateCharacteristic({ timer: time })}
-                  disabled={isUpdating}
-                  className={`py-2 px-2 rounded-lg text-sm font-medium transition ${timer === time
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    } ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {time === 0 ? 'Off' : `${time}m`}
-                </button>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Current Characteristics Display (for debugging) */}
-      {device.characteristic && device.characteristic.length > 0 && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-xs font-semibold text-blue-900 mb-2">Current Settings:</p>
-          <div className="grid grid-cols-2 gap-2">
-            {device.characteristic.map((char, idx) => (
-              <div key={idx} className="text-xs">
-                <span className="text-blue-700 font-medium">{char.name}:</span>{' '}
-                <span className="text-blue-900">{char.value}{char.unit}</span>
-              </div>
+                  }`}
+              >
+                {speedLevel === 0 ? '0' : speedLevel}
+              </button>
             ))}
           </div>
         </div>
-      )}
+
+        {/* Timer Control */}
+        {/*
+        <div>
+          <div className="flex justify-between items-center mb-3">
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <Timer className="w-4 h-4" />
+              Auto-Off Timer
+            </label>
+            <span className="text-sm font-semibold text-gray-900">
+              {timer === 0 ? 'Off' : `${timer} mins`}
+            </span>
+          </div>
+          <div className="grid grid-cols-5 gap-2">
+            {[0, 30, 60, 120, 480].map((time) => (
+              <button
+                key={time}
+                onClick={() => updateCharacteristic({ timer: time })}
+                disabled={isUpdating || !isPowered}
+                className={`py-2 px-2 rounded-lg text-sm font-medium transition ${
+                  timer === time
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {time === 0 ? 'Off' : `${time}m`}
+              </button>
+            ))}
+          </div>
+        </div>
+        */}
+      </div>
     </div>
   );
 }
 
 // Light Control Component
-function LightControl({ device, onUpdate, isUpdating }) {
-  // Helper to get characteristic value
+function LightControl({ device, onUpdate, onToggle, isUpdating }) {
+  // 1. Determine Power State from 'status' field
+  const isPowered = device.status === 'online';
+
+  // 2. Get Characteristic Values
   const getCharValue = (charName, defaultValue = 0) => {
     const char = device.characteristic?.find(c => c.name === charName);
-    return char ? parseInt(char.value) || defaultValue : defaultValue;
+    return char ? parseInt(char.value) || 0 : defaultValue;
   };
 
-  // Helper to check if device is powered on
-  const isPoweredOn = () => {
-    const powerChar = device.characteristic?.find(c => c.name === 'power');
-    return powerChar ? (powerChar.value === '1' || powerChar.value === 'on' || powerChar.value === 'true') : false;
-  };
-
-  // Get current values from characteristic array
-  const power = isPoweredOn();
-  const brightness = getCharValue('brightness', 100);
+  // Map JSON "Light level" to local variable
+  const currentLevel = getCharValue('Light level', 0);
   const colorTemp = getCharValue('colorTemp', 4000);
+  const hasColorTemp = device.characteristic?.some(c => c.name === 'colorTemp');
 
-  // Helper to update characteristics
+  // 3. Handle Power Toggle (Updates root 'status' field)
+  const handlePowerToggle = () => {
+    onToggle({
+      ...device,
+      status: isPowered ? 'offline' : 'online'
+    });
+  };
+
+  // 4. Handle Characteristic Updates
   const updateCharacteristic = (updates) => {
     const currentChars = device.characteristic || [];
     const charMap = new Map(currentChars.map(c => [c.name, c]));
 
     Object.entries(updates).forEach(([name, value]) => {
+      const existingChar = charMap.get(name);
       charMap.set(name, {
         name,
-        unit: getUnitForChar(name),
+        unit: existingChar?.unit || (name === 'Light level' ? 'level' : ''),
         value: String(value)
       });
     });
 
-    const updatedCharacteristics = Array.from(charMap.values());
-
+    // FIX: Pass a NEW object
     onUpdate({
       ...device,
-      characteristic: updatedCharacteristics
+      characteristic: Array.from(charMap.values())
     });
-  };
-
-  const getUnitForChar = (charName) => {
-    const unitMap = {
-      'brightness': '%',
-      'colorTemp': 'K',
-      'power': '',
-    };
-    return unitMap[charName] || '';
   };
 
   return (
@@ -337,121 +332,87 @@ function LightControl({ device, onUpdate, isUpdating }) {
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
         <div className="flex items-center gap-3">
           <Power className="w-5 h-5 text-gray-700" />
-          <span className="font-semibold text-gray-900">Power</span>
+          <span className="font-semibold text-gray-900">Device Status</span>
         </div>
         <button
-          onClick={() => updateCharacteristic({ power: power ? '0' : '1' })}
+          onClick={handlePowerToggle}
           disabled={isUpdating}
-          className={`relative w-14 h-8 rounded-full transition ${power ? 'bg-yellow-500' : 'bg-gray-300'
+          className={`relative w-14 h-8 rounded-full transition ${isPowered ? 'bg-yellow-500' : 'bg-gray-300'
             } ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          <span className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${power ? 'translate-x-6' : ''
+          <span className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${isPowered ? 'translate-x-6' : ''
             }`}></span>
         </button>
       </div>
 
-      {power && (
-        <>
-          {/* Brightness Slider */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Brightness: {brightness}%
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={brightness}
-              onChange={(e) => updateCharacteristic({ brightness: parseInt(e.target.value) })}
-              disabled={isUpdating}
-              className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-500 ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>0%</span>
-              <span>100%</span>
-            </div>
+      {/* Controls (Only visible/active when Online) */}
+      <div className={`transition-opacity duration-200 ${isPowered ? 'opacity-100' : 'opacity-50 pointer-events-none filter blur-[1px]'}`}>
+
+        {/* Brightness Slider */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Brightness: {currentLevel}
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={currentLevel}
+            onChange={(e) => updateCharacteristic({ 'Light level': parseInt(e.target.value) })}
+            disabled={isUpdating || !isPowered}
+            className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-500`}
+          />
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>0</span>
+            <span>100</span>
           </div>
+        </div>
 
-          {/* Quick Presets */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Quick Presets</label>
-            <div className="grid grid-cols-4 gap-2">
+        {/* Quick Presets */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Quick Presets</label>
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: 'Max', val: 100 },
+              { label: 'Bright', val: 75 },
+              { label: 'Dim', val: 50 },
+              { label: 'Night', val: 25 }
+            ].map((preset) => (
               <button
-                onClick={() => updateCharacteristic({ brightness: 100, colorTemp: 5000 })}
-                disabled={isUpdating}
-                className={`py-2 px-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition text-sm ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
+                key={preset.label}
+                onClick={() => updateCharacteristic({ 'Light level': preset.val })}
+                disabled={isUpdating || !isPowered}
+                className="py-2 px-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition text-sm"
               >
-                Bright
+                {preset.label}
               </button>
-              <button
-                onClick={() => updateCharacteristic({ brightness: 60, colorTemp: 4000 })}
-                disabled={isUpdating}
-                className={`py-2 px-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition text-sm ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-              >
-                Normal
-              </button>
-              <button
-                onClick={() => updateCharacteristic({ brightness: 30, colorTemp: 2700 })}
-                disabled={isUpdating}
-                className={`py-2 px-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition text-sm ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-              >
-                Warm
-              </button>
-              <button
-                onClick={() => updateCharacteristic({ brightness: 10, colorTemp: 2700 })}
-                disabled={isUpdating}
-                className={`py-2 px-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition text-sm ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-              >
-                Night
-              </button>
-            </div>
-          </div>
-
-          {/* Color Temperature (Optional) */}
-          {colorTemp !== undefined && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Color Temperature: {colorTemp}K
-              </label>
-              <input
-                type="range"
-                min="2200"
-                max="6500"
-                step="100"
-                value={colorTemp}
-                onChange={(e) => updateCharacteristic({ colorTemp: parseInt(e.target.value) })}
-                disabled={isUpdating}
-                className={`w-full h-2 bg-gradient-to-r from-orange-400 via-yellow-200 to-blue-200 rounded-lg appearance-none cursor-pointer ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-              />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>🔥 Warm</span>
-                <span>❄️ Cool</span>
-              </div>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Current Characteristics Display (for debugging) */}
-      {device.characteristic && device.characteristic.length > 0 && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-xs font-semibold text-blue-900 mb-2">Current Settings:</p>
-          <div className="grid grid-cols-2 gap-2">
-            {device.characteristic.map((char, idx) => (
-              <div key={idx} className="text-xs">
-                <span className="text-blue-700 font-medium">{char.name}:</span>{' '}
-                <span className="text-blue-900">{char.value}{char.unit}</span>
-              </div>
             ))}
           </div>
         </div>
-      )}
+
+        {/* Color Temperature (Conditional) */}
+        {hasColorTemp && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Color Temperature: {colorTemp}K
+            </label>
+            <input
+              type="range"
+              min="2200"
+              max="6500"
+              step="100"
+              value={colorTemp}
+              onChange={(e) => updateCharacteristic({ colorTemp: parseInt(e.target.value) })}
+              disabled={isUpdating || !isPowered}
+              className="w-full h-2 bg-gradient-to-r from-orange-400 via-yellow-200 to-blue-200 rounded-lg appearance-none cursor-pointer"
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>🔥 Warm</span>
+              <span>❄️ Cool</span>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -488,10 +449,8 @@ function LockControl({ device, onUpdate, isUpdating }) {
 
     const updatedCharacteristics = Array.from(charMap.values());
 
-    onUpdate({
-      ...device,
-      characteristic: updatedCharacteristics
-    });
+    device.characteristic = updatedCharacteristics;
+    onUpdate(device);
   };
 
   return (
@@ -513,8 +472,8 @@ function LockControl({ device, onUpdate, isUpdating }) {
           })}
           disabled={isUpdating}
           className={`px-6 py-3 rounded-lg font-semibold transition ${locked
-              ? 'bg-orange-600 hover:bg-orange-700 text-white'
-              : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+            ? 'bg-orange-600 hover:bg-orange-700 text-white'
+            : 'bg-indigo-600 hover:bg-indigo-700 text-white'
             } ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {locked ? 'Unlock Door' : 'Lock Door'}

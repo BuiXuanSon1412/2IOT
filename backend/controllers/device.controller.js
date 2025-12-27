@@ -63,7 +63,7 @@ export async function toggleDeviceStatus (req, res) {
         res.status(200).json(updatedDevice);
     }
     catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: error.message + "\n" + req.body._id + " " + req.body.newStatus });
     }
 }
 

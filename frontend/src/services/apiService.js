@@ -28,6 +28,7 @@ class ApiService {
         headers,
         signal: controller.signal, // ADD THIS
       });
+      
 
       clearTimeout(timeoutId); // ADD THIS
 
@@ -107,10 +108,11 @@ class ApiService {
     });
   }
 
-  async toggleDeviceStatus(deviceId, newStatus) {
+  async toggleDeviceStatus(deviceId, newStatus) { 
+    const id = typeof deviceId === 'object' ? deviceId._id : deviceId;
     return this.fetchWithAuth(API_ENDPOINTS.DEVICES.UPDATE_STATUS, {
       method: 'PATCH',
-      body: JSON.stringify({ _id: deviceId, newStatus }),
+      body: JSON.stringify({ _id: id, newStatus: newStatus }),
     });
   }
 
