@@ -62,7 +62,6 @@ export const updateDeviceStatusById = async (_id, newStatus) => {
     if (!device) return null;
 
     device.status = newStatus;
-    console.log(device.status, " ", newStatus);
     await device.save();
 
     const action = [{
@@ -70,7 +69,7 @@ export const updateDeviceStatusById = async (_id, newStatus) => {
         value: (newStatus === "online" ? 1 : 0)
     }];
 
-    //publishControlCommand(device.homeId, device.name, action); 
+    publishControlCommand(device.homeId, device.name, action); 
 
     return device;
 }
@@ -98,18 +97,19 @@ export const updateCharacteristicById = async (_id, userId, characteristics) => 
 
     const device = await Device.findById(_id);
     if (!device) return null;
-
+    
+    console.log(_id, userId, characteristics);
     const permitted = device.permittedUsers?.some(p =>
         p.userId.toString() === userId.toString() &&
         ["configurable", "control"].includes(p.permissionLevel)
     );
-
+    
     if (!permitted) {
-        throw new Error("Permission denied: user cannot update device characteristics");
+        throw new Error(`Permission denied: user ${userId} cannot update device characteristics`);
     }
-
+    
     const current = device.characteristic ?? [];
-
+    
     const map = new Map(
         current.map(c => [c.name, c])
     );

@@ -10,8 +10,10 @@ import dotenv from "dotenv";
 import "./config/mqtt.js";
 import { initRedisClient } from "./config/redis.js";
 import { loadRulesIntoRedis, loadSchedulesIntoRedis, startScheduler } from "./services/rule-engine/redis/redis.service.js";
-import { initInfluxClient, closeInfluxClient } from "./config/influxDb.js";
+import { initInfluxClient } from "./config/influxDb.js";
 import { initMqttClient } from "./config/mqtt.js";
+import { initSocket } from "./config/socket.js";
+import http from "http";
 
 dotenv.config();
 
@@ -38,10 +40,6 @@ app.use("/api/sensors", sensorRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/board", boardRoutes);
 
-app.get('/', function (req, res) {
-  res.status(200).send('ok')
-});
-
 async function bootstrap() {
   await connectDB(mongoDbUri);
 
@@ -62,7 +60,12 @@ async function bootstrap() {
   // MQTT
   initMqttClient(process.env.MQTT_BROKER_URL);
 
-  app.listen(port, () => {
+  const server = http.createServer(app);
+
+  // Websocket
+  initSocket(server);
+
+  server.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });
 }

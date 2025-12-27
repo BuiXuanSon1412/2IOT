@@ -7,8 +7,12 @@ import AnalyticsScreen from './screens/AnalyticsScreen';
 import Sidebar from './components/Sidebar';
 import authService from './services/authService';
 import { mockFloors, mockDeviceDetails } from './data/mockData';
+import { bootstrapSocket } from './services/socketService';
 
 function App() {
+  // websocket
+  bootstrapSocket();
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [currentScreen, setCurrentScreen] = useState('monitor');

@@ -1,4 +1,5 @@
 import { getMqttClient } from "../../../config/mqtt.js";
+import { getSocket } from "../../../config/socket.js";
 import { writeSensorPoint } from "../influxDb/influxDb.service.js";
 import { evaluateRules } from "../rule/rule.service.js";
 
@@ -15,6 +16,7 @@ export function publishControlCommand(homeId, name, action) {
 }
 
 export async function handleSensorMessage(message) {
+    const io = getSocket();
     const m = JSON.parse(message.toString());
 
     for (const obj of m) {
@@ -23,7 +25,11 @@ export async function handleSensorMessage(message) {
         const measure = obj.measure; // temperature 
         const value = obj.value;
         const timestamp = Date.now();
-        writeSensorPoint({ homeId, name, measure, value, timestamp });
+        // writeSensorPoint({ homeId, name, measure, value, timestamp });
         await evaluateRules({ homeId, measure, value });
+
+        io.emit("sensor:update", {
+            homeId, name, measure, value, timestamp
+        });
     }
 }

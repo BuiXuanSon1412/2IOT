@@ -7,6 +7,7 @@ import { Thermometer, Droplets, Wind, Activity, AlertCircle, RotateCw } from 'lu
 export default function MonitorScreen() {
   const [selectedFloor, setSelectedFloor] = useState(0);
   const [selectedDevice, setSelectedDevice] = useState(null);
+  const [selectedSensor, setSelectedSensor] = useState(null);
   const [devices, setDevices] = useState({});
   const [sensors, setSensors] = useState({});
   const [floors, setFloors] = useState([]);
@@ -90,10 +91,11 @@ export default function MonitorScreen() {
 
     const allItems = [
       ...devicesList,
-      ...sensorsList.map(sensor => ({
-        ...sensor,
-        status: sensor.status || 'online', // ADD DEFAULT STATUS
-      }))
+      ...sensorsList
+      // ...sensorsList.map(sensor => ({
+      //   ...sensor,
+      //   status: sensor.status || 'online', // ADD DEFAULT STATUS
+      // }))
     ];
 
     allItems.forEach(item => {
@@ -128,7 +130,7 @@ export default function MonitorScreen() {
   };
 
   const handleDeviceClick = (deviceId) => {
-    const device = devices[deviceId] || sensors[deviceId];
+    const device = devices[deviceId];
 
     // ADD VALIDATION
     if (!device) {
@@ -144,6 +146,27 @@ export default function MonitorScreen() {
     }
 
     setSelectedDevice(device);
+    setSelectedSensor(null);
+  };
+
+  const handleSensorClick = (sensorId) => {
+    const sensor = sensors[sensorId];
+
+    // ADD VALIDATION
+    if (!sensor) {
+      console.error('Sensor not found:', sensorId);
+      setError('Sensor not found. Please refresh the page.');
+      return;
+    }
+
+    if (typeof sensor !== 'object') {
+      console.error('Invalid sensor data:', sensor);
+      setError('Invalid sensor data. Please refresh the page.');
+      return;
+    }
+
+    setSelectedDevice(null);
+    setSelectedSensor(sensor);
   };
 
   const handleDeviceUpdate = async (updatedDevice) => {
@@ -167,10 +190,10 @@ export default function MonitorScreen() {
         //  updatedDevice.characteristic
         //);
 
-        if (!controlResult.success) {
-          console.warn('Control command failed:', controlResult.error);
-          // Don't throw - characteristic was updated, just log warning
-        }
+        // if (!controlResult.success) {
+        //   console.warn('Control command failed:', controlResult.error);
+        //   // Don't throw - characteristic was updated, just log warning
+        // }
       } else {
         throw new Error(result.error || 'Failed to update device');
       }
@@ -184,10 +207,8 @@ export default function MonitorScreen() {
   const handleToggleStatus = async (deviceId, currentStatus) => {
     const newStatus = currentStatus;
     // const newStatus = currentStatus == 'online' ? 'offline' : 'online';
-    console.log("handleToggleStatus", newStatus);
     try {
       const result = await apiService.toggleDeviceStatus(deviceId, newStatus);
-      console.log(newStatus)
       if (result.success) {
         setDevices(prev => ({
           ...prev,
@@ -416,23 +437,34 @@ export default function MonitorScreen() {
                   {room.name}
                 </text>
 
-                {room.devices.map((deviceId, dIdx) => {
-                  const device = devices[deviceId] || sensors[deviceId];
-                  if (!device) return null;
-                  // console.log(device.status)
+                {room.devices.map((itemId, dIdx) => {
+                  // Check if item is a device or sensor
+                  const isDevice = devices[itemId] !== undefined
+                  const isSensor = sensors[itemId] !== undefined
+                  const item = isDevice ? devices[itemId] : sensors[itemId]
+
+                  if (!item) return null
+
                   return (
                     <g
                       key={dIdx}
-                      onClick={() => handleDeviceClick(deviceId)}
+                      onClick={() => {
+                        // Call the appropriate handler based on item type
+                        if (isDevice) {
+                          handleDeviceClick(itemId)
+                        } else if (isSensor) {
+                          handleSensorClick(itemId)
+                        }
+                      }}
                       className="cursor-pointer"
-                      style={{ cursor: 'pointer' }}
+                      style={{ cursor: "pointer" }}
                     >
                       <circle
                         cx={room.x + 18 + dIdx * 30}
                         cy={room.y + room.height - 18}
                         r="12"
                         fill="white"
-                        stroke={device.status === 'online' ? '#10b981' : '#ef4444'}
+                        stroke={item.status === "online" ? "#10b981" : "#ef4444"}
                         strokeWidth="2"
                         className="hover:opacity-80 transition"
                       />
@@ -440,12 +472,12 @@ export default function MonitorScreen() {
                         x={room.x + 18 + dIdx * 30}
                         y={room.y + room.height - 13}
                         textAnchor="middle"
-                        className="fill-white text-sm pointer-events-none"
+                        className="fill-gray-600 text-sm pointer-events-none"
                       >
-                        {device.icon}
+                        {item.icon}
                       </text>
                     </g>
-                  );
+                  )
                 })}
               </g>
             ))}
@@ -464,10 +496,14 @@ export default function MonitorScreen() {
         </div>
       </div>
 
-      {selectedDevice && (
+      {(selectedDevice || selectedSensor) && (
         <DeviceControlModal
           device={selectedDevice}
-          onClose={() => setSelectedDevice(null)}
+          sensor={selectedSensor}
+          onClose={() => {
+            setSelectedDevice(null);
+            setSelectedSensor(null);
+          }}
           onUpdate={handleDeviceUpdate}
           onToggle={handleToggleStatus}
         />

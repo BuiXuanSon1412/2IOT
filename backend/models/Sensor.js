@@ -12,6 +12,11 @@ const sensorSchema = new mongoose.Schema(
             required: true
         },
 
+        status: {
+            type: String,
+            default: "online"
+        },
+
         measures: {
             type: [{
                 measure: { type: String },

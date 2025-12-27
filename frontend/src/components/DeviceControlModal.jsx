@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { StatCard } from './StatCard';
 import { X, Power, ThermometerSun, Droplets, Wind, Lightbulb, Lock, Unlock, Activity, Clock, AlertTriangle, Fan as FanIcon, RotateCw, Timer, AlertCircle } from 'lucide-react';
+import { useSensorStore } from '../services/socketService';
+
 // Find DeviceControlModal component
-export function DeviceControlModal({ device, onClose, onUpdate, onToggle }) {
+export function DeviceControlModal({ device, sensor, onClose, onUpdate, onToggle }) {
   const [deviceState, setDeviceState] = useState(device);
+  const [sensorState, setSensorState] = useState(sensor);
   const [isUpdating, setIsUpdating] = useState(false); // ADD THIS
   const [updateError, setUpdateError] = useState(null); // ADD THIS
 
@@ -36,7 +39,6 @@ export function DeviceControlModal({ device, onClose, onUpdate, onToggle }) {
     setIsUpdating(true); // ADD THIS
     setUpdateError(null); // ADD THIS
     const newState = { ...deviceState, ...updates };
-    console.log("handleToggle", newState);
 
     // Optimistically update UI
     setDeviceState(newState);
@@ -64,16 +66,26 @@ export function DeviceControlModal({ device, onClose, onUpdate, onToggle }) {
         return <LightControl device={deviceState} onUpdate={handleUpdate} onToggle={handleToggle} isUpdating={isUpdating} />;
       case 'lock':
         return <LockControl device={deviceState} onUpdate={handleUpdate} isUpdating={isUpdating} />;
-      case 'dht22':
-        return <DHT22Sensor device={deviceState} />;
-      case 'mq2':
-        return <MQ2Sensor device={deviceState} />;
-      case 'bh1750':
-        return <BH1750Sensor device={deviceState} />;
       default:
         return <div className="text-gray-500 text-center py-8">No controls available</div>;
     }
   };
+
+  const renderSensorState = () => {
+    if (!sensorState) return null;
+
+    switch (sensorState.name) {
+      case 'DHT22_Sensor':
+        return <DHT22Sensor sensor={sensorState} />;
+      case 'mq2':
+        return <MQ2Sensor sensor={sensorState} />;
+      case 'BH1750_Light_Sensor':
+        return <BH1750Sensor sensor={sensorState} />;
+    }
+  };
+
+  const modalItem = deviceState || sensorState;
+  if (!modalItem) return null;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
@@ -81,16 +93,16 @@ export function DeviceControlModal({ device, onClose, onUpdate, onToggle }) {
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className={`text-4xl p-3 rounded-xl ${deviceState.status === 'online' ? 'bg-green-50' : 'bg-red-50'}`}>
-              {deviceState.icon}
+            <div className={`text-4xl p-3 rounded-xl ${modalItem.status === 'online' ? 'bg-green-50' : 'bg-red-50'}`}>
+              {modalItem.icon}
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{deviceState.name}</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{modalItem.name}</h2>
               <div className="flex items-center gap-3 mt-1">
-                <p className="text-gray-600">{deviceState.room}</p>
-                <span className={`flex items-center gap-1 text-sm ${deviceState.status === 'online' ? 'text-green-600' : 'text-red-600'}`}>
-                  <span className={`w-2 h-2 rounded-full ${deviceState.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                  {deviceState.status}
+                <p className="text-gray-600">{modalItem.room}</p>
+                <span className={`flex items-center gap-1 text-sm ${modalItem.status === 'online' ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className={`w-2 h-2 rounded-full ${modalItem.status === 'online' ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                  {modalItem.status}
                 </span>
               </div>
             </div>
@@ -130,7 +142,7 @@ export function DeviceControlModal({ device, onClose, onUpdate, onToggle }) {
         {/* Content */}
         <div className="p-6 space-y-6">
           {/* Device Stats */}
-          {deviceState.energyUsage && (
+          {deviceState?.energyUsage && (
             <div className="grid grid-cols-2 gap-4">
               <StatCard
                 icon={<Activity className="w-5 h-5" />}
@@ -146,7 +158,9 @@ export function DeviceControlModal({ device, onClose, onUpdate, onToggle }) {
           )}
 
           {/* Device Controls */}
-          {renderDeviceControl()}
+          {device && renderDeviceControl()}
+
+          {sensor && renderSensorState()}
         </div>
       </div>
     </div>
@@ -230,7 +244,7 @@ function FanControl({ device, onUpdate, onToggle, isUpdating }) {
             </span>
           </div>
           <div className="grid grid-cols-6 gap-2">
-            {[0, 80, 110, 150, 200, 255].map((speedLevel) => (
+            {[80, 120, 160, 200].map((speedLevel) => (
               <button
                 key={speedLevel}
                 onClick={() => updateCharacteristic({ 'Fan speed': speedLevel })}
@@ -524,56 +538,90 @@ function LockControl({ device, onUpdate, isUpdating }) {
   );
 }
 
-// DHT22 Sensor Component (Temperature & Humidity)
-function DHT22Sensor({ device }) {
+function DHT22Sensor({ sensor }) {
+  const sensorItem = useSensorStore(s => s.sensors[sensor.name]);
+
+  const temperature = sensorItem?.temperature;
+  const humidity = sensorItem?.humidity;
+
   return (
     <div className="space-y-6">
+      {/* Main Readings */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-orange-50 rounded-xl p-6 text-center">
           <ThermometerSun className="w-10 h-10 text-orange-600 mx-auto mb-3" />
           <p className="text-sm text-gray-600 mb-1">Temperature</p>
-          <p className="text-4xl font-bold text-gray-900">{device.temperature}°C</p>
+          <p className="text-4xl font-bold text-gray-900">
+            {temperature}°C
+          </p>
           <p className="text-xs text-gray-500 mt-2">Real-time reading</p>
         </div>
+
         <div className="bg-blue-50 rounded-xl p-6 text-center">
           <Droplets className="w-10 h-10 text-blue-600 mx-auto mb-3" />
           <p className="text-sm text-gray-600 mb-1">Humidity</p>
-          <p className="text-4xl font-bold text-gray-900">{device.humidity}%</p>
+          <p className="text-4xl font-bold text-gray-900">
+            {humidity}%
+          </p>
           <p className="text-xs text-gray-500 mt-2">Real-time reading</p>
         </div>
       </div>
 
       {/* Status Indicators */}
       <div className="grid grid-cols-2 gap-4">
-        <div className={`p-4 rounded-xl ${device.temperature >= 18 && device.temperature <= 26
-          ? 'bg-green-50 border border-green-200'
-          : 'bg-yellow-50 border border-yellow-200'
-          }`}>
-          <p className="text-sm font-medium text-gray-700">Temperature Status</p>
-          <p className={`font-semibold ${device.temperature >= 18 && device.temperature <= 26
-            ? 'text-green-600'
-            : 'text-yellow-600'
-            }`}>
-            {device.temperature >= 18 && device.temperature <= 26 ? 'Optimal' : 'Adjust Needed'}
+        <div
+          className={`p-4 rounded-xl ${
+            temperature >= 18 && temperature <= 26
+              ? "bg-green-50 border border-green-200"
+              : "bg-yellow-50 border border-yellow-200"
+          }`}
+        >
+          <p className="text-sm font-medium text-gray-700">
+            Temperature Status
+          </p>
+          <p
+            className={`font-semibold ${
+              temperature >= 18 && temperature <= 26
+                ? "text-green-600"
+                : "text-yellow-600"
+            }`}
+          >
+            {temperature >= 18 && temperature <= 26
+              ? "Optimal"
+              : "Adjust Needed"}
           </p>
         </div>
-        <div className={`p-4 rounded-xl ${device.humidity >= 40 && device.humidity <= 60
-          ? 'bg-green-50 border border-green-200'
-          : 'bg-yellow-50 border border-yellow-200'
-          }`}>
-          <p className="text-sm font-medium text-gray-700">Humidity Status</p>
-          <p className={`font-semibold ${device.humidity >= 40 && device.humidity <= 60
-            ? 'text-green-600'
-            : 'text-yellow-600'
-            }`}>
-            {device.humidity >= 40 && device.humidity <= 60 ? 'Optimal' : 'Adjust Needed'}
+
+        <div
+          className={`p-4 rounded-xl ${
+            humidity >= 40 && humidity <= 60
+              ? "bg-green-50 border border-green-200"
+              : "bg-yellow-50 border border-yellow-200"
+          }`}
+        >
+          <p className="text-sm font-medium text-gray-700">
+            Humidity Status
+          </p>
+          <p
+            className={`font-semibold ${
+              humidity >= 40 && humidity <= 60
+                ? "text-green-600"
+                : "text-yellow-600"
+            }`}
+          >
+            {humidity >= 40 && humidity <= 60
+              ? "Optimal"
+              : "Adjust Needed"}
           </p>
         </div>
       </div>
 
+      {/* Footer */}
       <div className="p-4 bg-gray-50 rounded-xl text-center">
         <p className="text-sm text-gray-600">📡 Read-Only Sensor</p>
-        <p className="text-xs text-gray-500 mt-1">DHT22 Temperature & Humidity Monitor</p>
+        <p className="text-xs text-gray-500 mt-1">
+          DHT22 Temperature & Humidity Monitor
+        </p>
       </div>
     </div>
   );
@@ -660,9 +708,12 @@ function MQ2Sensor({ device }) {
 }
 
 // BH1750 Light Sensor Component
-function BH1750Sensor({ device }) {
+function BH1750Sensor({ sensor }) {
+  const sensorItem = useSensorStore(s => s.sensors[sensor.name]);
+  const brightness = sensorItem?.brightness;
+
   const getConditionColor = () => {
-    switch (device.condition) {
+    switch (brightness) {
       case 'dark': return { bg: 'bg-gray-800', text: 'text-white', icon: '🌙' };
       case 'dim': return { bg: 'bg-blue-100', text: 'text-blue-900', icon: '🌥️' };
       case 'bright': return { bg: 'bg-yellow-100', text: 'text-yellow-900', icon: '☀️' };
@@ -682,14 +733,14 @@ function BH1750Sensor({ device }) {
         </div>
         <div className="flex items-baseline gap-1">
           <span className="text-xl font-bold text-gray-900">
-            {device.lightLevel}
+            {sensorItem.brightness}
           </span>
           <span className="text-sm text-gray-600">
             lux
           </span>
         </div>
         <div className={`text-sm font-semibold uppercase ${colors.text}`}>
-          {device.condition}
+          {sensorItem.brightness}
         </div>
       </div>
 
@@ -700,7 +751,7 @@ function BH1750Sensor({ device }) {
           <div
             className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-gray-800 rounded-full shadow-lg"
             style={{
-              left: `${Math.min((device.lightLevel / 1000) * 100, 100)}%`,
+              left: `${Math.min((sensorItem.brightness / 1000) * 100, 100)}%`,
               transform: 'translate(-50%, -50%)'
             }}
           ></div>

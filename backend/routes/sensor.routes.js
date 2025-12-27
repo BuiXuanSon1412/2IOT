@@ -17,6 +17,7 @@ const router = express.Router();
  *     "name": "Living Room Sensor",
  *     "pin": "A0",
  *     "area": { "room": "Living Room", "floor": "1" },
+ *     "status": "online",
  *     "measures": [
  *       { "measure": "temperature", "snapshotValue": 26.5, "unit": "°C" },
  *       { "measure": "humidity", "snapshotValue": 58, "unit": "%" }
