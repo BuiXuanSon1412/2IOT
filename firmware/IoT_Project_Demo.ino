@@ -22,8 +22,8 @@
 
 const char* HOME_ID = "IoT_20251_House";
 const char* BRIGHTNESS_SENSOR_NAME = "BH1750_Light_Sensor";
-const char* TEMP_SENSOR_NAME = "DHT22_Temp_Sensor";
-const char* HUMID_SENSOR_NAME = "DHT22_Humid_Sensor";
+const char* TEMP_SENSOR_NAME = "DHT22_Sensor";
+const char* HUMID_SENSOR_NAME = "DHT22_Sensor";
 const char* LED_DEVICE_NAME = "LED1";
 const char* FAN_DEVICE_NAME = "FAN1";
 
@@ -44,8 +44,8 @@ std::vector<int> fan_config_act;
 
 const char* mqtt_server = "test.mosquitto.org"; 
 const int mqtt_port = 1883;
-const char* mqtt_topic_pub = "iot/project/status";
-const char* mqtt_topic_sub = "iot/project/control";
+const char* mqtt_topic_pub = "iot/project/status1";
+const char* mqtt_topic_sub = "iot/project/control1";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -55,6 +55,7 @@ unsigned long lastLightRequest = 0;
 const long lightInterval = 200;
 unsigned long lastTempRequest = 0;
 const long tempInterval = 2000;
+// const long tempInterval = 3000;
 const int delayInMillis = 750;
 bool tempRequested = false;
 int led_level = 0;
@@ -287,7 +288,7 @@ void updateDisplay() {
   display.setCursor(0, 30); 
   display.print("Light: ");
   display.print(brightness);
-  display.println(" lx");
+  display.println(" lux");
 
   display.setTextSize(1);
   display.setCursor(0, 45);
@@ -427,7 +428,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
         for (int val : arr_cond) fan_config_cond.push_back(val);
         for (int val : arr_act) fan_config_act.push_back(val);
         autoFanMode = true;
-        autoFan();
+        // autoFan();
       }
       updateDisplay();
       return;
@@ -450,8 +451,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
         autoFanMode = false;
         fan_speed = actionValue;
         if (fan_speed > 255) fan_speed = 255;
-        if (fan_speed < 0) fan_speed = 0;
+        if (fan_speed < 80)
+          fan_speed = 0;
 
+        if (fan_speed < 100 && fan_speed >= 80){
+          ledcWrite(fanChannel, 100);
+          delay(200);
+        }
+        
         ledcWrite(fanChannel, fan_speed);
         Serial.printf("-> Da chinh FAN: %d\n", fan_speed);
       }
