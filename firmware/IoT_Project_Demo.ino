@@ -31,7 +31,8 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 BH1750 lightMeter;
 DHT dht(DHTPIN, DHTTYPE);
 
-const int freq = 5000;
+// const int freq = 5000;
+const int freq = 100;
 const int ledChannel = 0;
 const int resolution = 8;
 const int fanChannel = 1;
@@ -52,7 +53,8 @@ PubSubClient client(espClient);
 WiFiManager wm;
 
 unsigned long lastLightRequest = 0;
-const long lightInterval = 200;
+// const long lightInterval = 200;
+const long lightInterval = 2000;
 unsigned long lastTempRequest = 0;
 const long tempInterval = 2000;
 // const long tempInterval = 3000;
@@ -428,7 +430,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
         for (int val : arr_cond) fan_config_cond.push_back(val);
         for (int val : arr_act) fan_config_act.push_back(val);
         autoFanMode = true;
-        // autoFan();
+        // autoFan(); // Need protection against no spinning motor
       }
       updateDisplay();
       return;
@@ -450,12 +452,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
       else if (strcmp(deviceName, "FAN1") == 0) {
         autoFanMode = false;
         fan_speed = actionValue;
-        if (fan_speed > 255) fan_speed = 255;
-        if (fan_speed < 80)
+        if (fan_speed > 100) fan_speed = 100;
+        if (fan_speed < 70)
           fan_speed = 0;
 
-        if (fan_speed < 100 && fan_speed >= 80){
-          ledcWrite(fanChannel, 100);
+        if (fan_speed < 100 && fan_speed >= 70){
+          ledcWrite(fanChannel, 120);
           delay(200);
         }
         
