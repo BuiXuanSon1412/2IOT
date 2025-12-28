@@ -14,7 +14,6 @@ export async function loadRulesIntoRedis() {
 
     for (const rule of device.settings.autoBehavior) {
       const redisKey = `rules:${homeId}:${rule.measure}`;
-
       const ruleEntry = {
         name: device.name,
         range: rule.range,

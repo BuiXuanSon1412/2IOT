@@ -13,6 +13,7 @@ export async function evaluateRules({ homeId, measure, value }) {
 
     const redisKey = `rules:${homeId}:${measure}`;
     const rules = await redis.lRange(redisKey, 0, -1);
+    // console.log("Examining rule:", redisKey);
 
     for (let i = 0; i < rules.length; i++) {
         const rule = JSON.parse(rules[i]);
@@ -37,9 +38,8 @@ export async function executeOnce(rule) {
     const bucket = Math.floor(Date.now() / 60000);
     const execKey = `schedule:exec:${rule.name}:${bucket}`;
 
-    const allowed = await redis.setNX(execKey, 1);
+    const allowed = await redis.setNX(execKey, "1");
     if (!allowed) return;
-
     await redis.expire(execKey, process.env.EXEC_TTL);
 
     publishControlCommand(rule.homeId, rule.name, rule.action);
