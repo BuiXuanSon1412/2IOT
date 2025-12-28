@@ -13,8 +13,6 @@ export function publishControlCommand(homeId, name, action) {
     };
 
     client.publish(topic, JSON.stringify(payload), { qos: 1 });
-
-    console.log("Publish:", payload);
 }
 
 export async function handleSensorMessage(message) {

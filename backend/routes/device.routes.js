@@ -180,7 +180,7 @@ router.patch('/permission', authenticate, authorize('admin'), changePermissionOf
  * @example Response 500
  * { "message": "Duplicate auto behavior rule" }
  */
-router.patch('/auto-behavior/create', authenticate, updateDeviceAutoBehavior);
+router.patch('/auto-behavior/create', authenticate, authorize('admin'), updateDeviceAutoBehavior);
 
 /** 
  * @route PATCH /api/devices/auto-behavior/remove
@@ -210,7 +210,7 @@ router.patch('/auto-behavior/create', authenticate, updateDeviceAutoBehavior);
  * @example Response 500
  * { "message": "Device not found or cannot remove the automation rule" }
 */
-router.patch('/auto-behavior/remove', authenticate, deleteDeviceAutoBehavior);
+router.patch('/auto-behavior/remove', authenticate, authorize('admin'), deleteDeviceAutoBehavior);
 
 /**
  * @route PATCH /api/devices/schedules/create
@@ -246,7 +246,7 @@ router.patch('/auto-behavior/remove', authenticate, deleteDeviceAutoBehavior);
  * @example Response 500
  * { "message": "Duplicate scheduled rule" }
  */
-router.patch('/schedules/create', authenticate, updateDeviceSchedules);
+router.patch('/schedules/create', authenticate, authorize('admin'), updateDeviceSchedules);
 
 /**
  * @route PATCH /api/devices/schedules/remove
@@ -275,7 +275,7 @@ router.patch('/schedules/create', authenticate, updateDeviceSchedules);
  * @example Response 500
  * { "message": "Device not found or cannot remove the automation rule" }
  */
-router.patch('/schedules/remove', authenticate, deleteDeviceSchedules);
+router.patch('/schedules/remove', authenticate, authorize('admin'), deleteDeviceSchedules);
 
 /**
  * @route PATCH /api/devices/characteristic/
