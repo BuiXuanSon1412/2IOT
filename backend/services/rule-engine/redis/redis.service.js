@@ -110,8 +110,6 @@ export async function cacheScheduleRule({
   cronExpression,
   action
 }) {
-
-  const redis = getRedisClient();
   const { minutes, hours, daysOfMonth, daysOfWeek } =
     expandCron(cronExpression);
 
@@ -135,7 +133,6 @@ export async function removeScheduleRule({
   cronExpression,
   action
 }) {
-  const redis = getRedisClient();
   const { minutes, hours, daysOfMonth, daysOfWeek } =
     expandCron(cronExpression);
 

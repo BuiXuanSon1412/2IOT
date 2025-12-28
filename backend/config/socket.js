@@ -1,4 +1,3 @@
-// backend/config/socket.js
 import { Server } from "socket.io";
 
 let io;
@@ -7,6 +6,7 @@ export function initSocket(server) {
     io = new Server(server, {
         cors: {
             origin: process.env.CORS || "http://localhost:5173",
+<<<<<<< HEAD
             credentials: true,
             methods: ["GET", "POST"]
         },
@@ -25,6 +25,21 @@ export function initSocket(server) {
 
         socket.on("disconnect", (reason) => {
             console.log("🔌 Socket disconnected:", socket.id, "Reason:", reason);
+=======
+            credentials: true
+        }
+    });
+
+    io.on("connection", socket => {
+        console.log("Socket connected:", socket.id);
+
+        socket.on("join:home", homeId => {
+            socket.join(`home:${homeId}`);
+        });
+
+        socket.on("disconnect", () => {
+            console.log("Socket disconnected:", socket.id);
+>>>>>>> parent of 96412bd (add: sensor device sim data)
         });
     });
 

@@ -28,8 +28,7 @@ class ApiService {
         headers,
         signal: controller.signal, // ADD THIS
       });
-
-      console.log(response)
+      
 
       clearTimeout(timeoutId); // ADD THIS
 
@@ -109,7 +108,7 @@ class ApiService {
     });
   }
 
-  async toggleDeviceStatus(deviceId, newStatus) {
+  async toggleDeviceStatus(deviceId, newStatus) { 
     const id = typeof deviceId === 'object' ? deviceId._id : deviceId;
     return this.fetchWithAuth(API_ENDPOINTS.DEVICES.UPDATE_STATUS, {
       method: 'PATCH',
@@ -119,7 +118,7 @@ class ApiService {
 
   async updateDeviceCharacteristics(deviceId, characteristics) {
     return this.fetchWithAuth(`${API_ENDPOINTS.DEVICES.UPDATE_CHARACTERISTIC}`, {
-      method: 'PATCH',
+      method: 'PATCH', 
       body: JSON.stringify({ _id: deviceId, characteristics }),
     });
   }
@@ -132,28 +131,28 @@ class ApiService {
   }
 
   async addAutoBehavior(deviceName, measure, range, action) {
-    return this.fetchWithAuth(API_ENDPOINTS.DEVICES.AUTO_BEHAVIOR.CREATE, {
+    return this.fetchWithAuth(`${API_ENDPOINTS.DEVICES.GET_ALL}/auto-behavior/create`, {
       method: 'PATCH',
       body: JSON.stringify({ name: deviceName, measure, range, action }),
     });
   }
 
   async removeAutoBehavior(deviceName, measure, range, action) {
-    return this.fetchWithAuth(API_ENDPOINTS.DEVICES.AUTO_BEHAVIOR.REMOVE, {
+    return this.fetchWithAuth(`${API_ENDPOINTS.DEVICES.GET_ALL}/auto-behavior/remove`, {
       method: 'PATCH',
       body: JSON.stringify({ name: deviceName, measure, range, action }),
     });
   }
 
   async addSchedule(deviceName, cronExpression, action) {
-    return this.fetchWithAuth(API_ENDPOINTS.DEVICES.SCHEDULES.CREATE, {
+    return this.fetchWithAuth(`${API_ENDPOINTS.DEVICES.GET_ALL}/schedules/create`, {
       method: 'PATCH',
       body: JSON.stringify({ name: deviceName, cronExpression, action }),
     });
   }
 
   async removeSchedule(deviceName, cronExpression, action) {
-    return this.fetchWithAuth(API_ENDPOINTS.DEVICES.SCHEDULES.REMOVE, {
+    return this.fetchWithAuth(`${API_ENDPOINTS.DEVICES.GET_ALL}/schedules/remove`, {
       method: 'PATCH',
       body: JSON.stringify({ name: deviceName, cronExpression, action }),
     });
@@ -202,7 +201,7 @@ class ApiService {
   }
 
   async updateUserRole(userId, newRole) {
-    return this.fetchWithAuth(`${API_ENDPOINTS.DEVICES.GET_ALL.replace('devices', 'users')} / role`, {
+    return this.fetchWithAuth(`${API_ENDPOINTS.DEVICES.GET_ALL.replace('devices', 'users')}/role`, {
       method: 'PATCH',
       body: JSON.stringify({ userId, newRole }),
     });

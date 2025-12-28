@@ -247,7 +247,6 @@ router.patch('/auto-behavior/remove', authenticate, deleteDeviceAutoBehavior);
  * { "message": "Duplicate scheduled rule" }
  */
 router.patch('/schedules/create', authenticate, updateDeviceSchedules);
-
 /**
  * @route PATCH /api/devices/schedules/remove
  * @access Admin
@@ -326,9 +325,9 @@ router.patch('/schedules/remove', authenticate, deleteDeviceSchedules);
 router.patch('/characteristic/', authenticate, updateDeviceCharacteristicById);
 
 router.get('/analytic', authenticate, (req, res) => {
-    const data = deviceData;
+  const data = deviceData;
 
-    res.json(data);
+  res.json(data);
 });
 
 export default router;
