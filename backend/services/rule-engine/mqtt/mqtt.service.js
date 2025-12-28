@@ -14,7 +14,7 @@ export function publishControlCommand(homeId, name, action) {
 
   client.publish(topic, JSON.stringify(payload), { qos: 1 });
 
-//   console.log("Publish:", topic, payload);
+  console.log("Publish:", topic, payload);
 }
 
 export async function handleSensorMessage(message) {
@@ -28,7 +28,7 @@ export async function handleSensorMessage(message) {
     const value = obj.value;
     const timestamp = Date.now();
 
-    //writeSensorPoint({ homeId, name, measure, value, timestamp });
+    writeSensorPoint({ homeId, name, measure, value, timestamp });
     await evaluateRules({ homeId, measure, value });
 
     io.emit("sensor:update", {

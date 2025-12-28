@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { StatCard } from './StatCard';
 import { X, Power, ThermometerSun, Droplets, Wind, Lightbulb, Lock, Unlock, Activity, Clock, AlertTriangle, Fan as FanIcon, RotateCw, Timer, AlertCircle } from 'lucide-react';
+
+
 import { useSensorStore } from '../services/socketService';
 
 // Find DeviceControlModal component
@@ -367,20 +369,7 @@ function LightControl({ device, onUpdate, onToggle, isUpdating }) {
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Brightness: {currentLevel}
           </label>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={currentLevel}
-            onChange={(e) => updateCharacteristic({ 'Light level': parseInt(e.target.value) })}
-            disabled={isUpdating || !isPowered}
-            className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-500`}
 
-          />
-          <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>0</span>
-            <span>255</span>
-          </div>
         </div>
 
         {/* Quick Presets */}

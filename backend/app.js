@@ -5,6 +5,8 @@ import deviceRoutes from "./routes/device.routes.js";
 import sensorRoutes from "./routes/sensor.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import boardRoutes from "./routes/board.routes.js";
+import logRoutes from "./routes/log.routes.js";
+
 import { connectDB } from "./config/db.js";
 import dotenv from "dotenv";
 import "./config/mqtt.js";
@@ -39,6 +41,7 @@ app.use("/api/devices", deviceRoutes);
 app.use("/api/sensors", sensorRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/board", boardRoutes);
+app.use("/api/logs", logRoutes);
 
 async function bootstrap() {
   console.log(new Date(1766379600000).toLocaleString("vi-VN"));

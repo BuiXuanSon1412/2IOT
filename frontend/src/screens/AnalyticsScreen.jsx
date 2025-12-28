@@ -220,22 +220,22 @@ function DeviceActivityChart({ deviceLogs }) {
           <p>No device activity data available</p>
         </div>
       ) : (
-        <div className="h-64 flex items-end justify-between gap-2">
+        <div className="relative h-64 flex items-end justify-between gap-2 overflow-hidden">
           {data.map((day, idx) => (
-            <div key={idx} className="flex-1 flex flex-col items-center gap-1">
-              <div className="w-full flex flex-col gap-1">
+            <div key={idx} className="flex-1 flex flex-col items-center gap-1 h-full">
+              <div className="w-full flex flex-col-reverse gap-1 h-full justify-start">
                 <div
                   className="w-full bg-yellow-500 rounded-t hover:bg-yellow-600 transition cursor-pointer"
-                  style={{ height: `${((day.Light || 0) / maxValue) * 200}px` }}
+                  style={{ height: `${Math.min(((day.Light || 0) / maxValue) * 100, 100)}%` }}
                   title={`Lights: ${day.Light || 0} logs`}
                 ></div>
                 <div
                   className="w-full bg-blue-500 rounded-t hover:bg-blue-600 transition cursor-pointer"
-                  style={{ height: `${((day.Fan || 0) / maxValue) * 200}px` }}
+                  style={{ height: `${Math.min(((day.Fan || 0) / maxValue) * 100, 100)}%` }}
                   title={`Fans: ${day.Fan || 0} logs`}
                 ></div>
               </div>
-              <span className="text-[10px] text-gray-600 mt-1">
+              <span className="text-[10px] text-gray-600 mt-1 whitespace-nowrap">
                 {new Date(day.date).toLocaleDateString('en', { month: 'short', day: 'numeric' })}
               </span>
             </div>
