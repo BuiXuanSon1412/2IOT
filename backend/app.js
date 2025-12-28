@@ -41,7 +41,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/board", boardRoutes);
 
 async function bootstrap() {
-  console.log(new Date(1735736400000).toLocaleString("vi-VN"));
+  console.log(new Date(1766379600000).toLocaleString("vi-VN"));
 
   await connectDB(mongoDbUri);
 
