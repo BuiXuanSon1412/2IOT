@@ -37,7 +37,7 @@ export function initMqttClient(brokerUrl) {
         try {
             if (topic === process.env.MQTT_TOPIC_STATUS) {
                 await handleSensorMessage(message.toString());
-                console.log(message.toString());
+                // console.log(message.toString());
             }
         } catch (err) {
             console.error("MQTT message handling failed", err);

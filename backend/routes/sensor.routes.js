@@ -1,6 +1,7 @@
 import express from 'express';
 import { authenticate, authorize } from '../middleware/auth/auth.js';
 import { addListOfSensors, fetchAllSensors } from '../controllers/sensor.controller.js';
+import { sensorData } from '../data/sensorData.js';
 
 const router = express.Router();
 
@@ -89,5 +90,11 @@ router.get('/', authenticate, fetchAllSensors);
  * { "message": "Sensors list is required, req.body.sensors undefined" }
  */
 router.post('/', authenticate, authorize('admin'), addListOfSensors); 
+
+router.get('/analytic', authenticate, (req, res) => {
+    const data = sensorData;
+
+    res.json(data);
+});
 
 export default router;
