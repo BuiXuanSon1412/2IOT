@@ -7,12 +7,9 @@ import AnalyticsScreen from './screens/AnalyticsScreen';
 import Sidebar from './components/Sidebar';
 import authService from './services/authService';
 import { mockFloors, mockDeviceDetails } from './data/mockData';
-import { bootstrapSocket } from './services/socketService';
+import { bootstrapSocket, disconnectSocket } from './services/socketService';
 
 function App() {
-  // websocket
-  bootstrapSocket();
-
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [currentScreen, setCurrentScreen] = useState('monitor');
@@ -32,6 +29,20 @@ function App() {
     checkAuth();
   }, []);
 
+  // Initialize WebSocket ONLY after authentication
+  useEffect(() => {
+    if (isAuthenticated && currentUser) {
+      console.log('Initializing WebSocket connection...');
+      bootstrapSocket();
+
+      // Cleanup on unmount or logout
+      return () => {
+        console.log('Disconnecting WebSocket...');
+        disconnectSocket();
+      };
+    }
+  }, [isAuthenticated, currentUser]);
+
   const handleLogin = (user) => {
     setCurrentUser(user);
     setIsAuthenticated(true);
@@ -39,6 +50,7 @@ function App() {
 
   const handleLogout = async () => {
     await authService.logout();
+    disconnectSocket(); // Disconnect socket on logout
     setCurrentUser(null);
     setIsAuthenticated(false);
     setCurrentScreen('monitor');
