@@ -1,6 +1,7 @@
 import express from 'express';
 import { authenticate, authorize } from '../middleware/auth/auth.js';
 import { addListOfDevices, changePermissionOfUserOnDevice, deleteDeviceAutoBehavior, deleteDevices, deleteDeviceSchedules, fetchAllDevices, toggleDeviceStatus, updateDeviceAutoBehavior, updateDeviceCharacteristicById, updateDeviceSchedules } from '../controllers/device.controller.js';
+import { deviceData } from '../data/deviceData.js';
 
 const router = express.Router();
 
@@ -323,5 +324,11 @@ router.patch('/schedules/remove', authenticate, authorize('admin'), deleteDevice
  * { "message": "Device not found" }
  */
 router.patch('/characteristic/', authenticate, updateDeviceCharacteristicById);
+
+router.get('/analytic', authenticate, (req, res) => {
+    const data = deviceData;
+
+    res.json(data);
+});
 
 export default router;
