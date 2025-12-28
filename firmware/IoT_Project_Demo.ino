@@ -20,7 +20,8 @@
 #define MOTOR_IN1 18 // PWM
 #define MOTOR_IN2 19
 
-const char* HOME_ID = "IoT_20251_House";
+// const char* HOME_ID = "IoT_20251_House";
+const char* HOME_ID = "694c9cf682c0bc0a61b3d8bd";
 const char* BRIGHTNESS_SENSOR_NAME = "BH1750_Light_Sensor";
 const char* TEMP_SENSOR_NAME = "DHT22_Sensor";
 const char* HUMID_SENSOR_NAME = "DHT22_Sensor";
