@@ -375,10 +375,11 @@ function LightControl({ device, onUpdate, onToggle, isUpdating }) {
             onChange={(e) => updateCharacteristic({ 'Light level': parseInt(e.target.value) })}
             disabled={isUpdating || !isPowered}
             className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-500`}
+
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
             <span>0</span>
-            <span>100</span>
+            <span>255</span>
           </div>
         </div>
 
@@ -387,10 +388,11 @@ function LightControl({ device, onUpdate, onToggle, isUpdating }) {
           <label className="block text-sm font-medium text-gray-700 mb-2">Quick Presets</label>
           <div className="grid grid-cols-4 gap-2">
             {[
-              { label: 'Max', val: 100 },
-              { label: 'Bright', val: 75 },
-              { label: 'Dim', val: 50 },
-              { label: 'Night', val: 25 }
+              { label: 'Night', val: 50 },
+              { label: 'Dim', val: 100 },
+              { label: 'Bright', val: 175 },
+              { label: 'Max', val: 255 },
+
             ].map((preset) => (
               <button
                 key={preset.label}

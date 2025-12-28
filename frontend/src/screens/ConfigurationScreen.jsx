@@ -363,7 +363,7 @@ function AddAutoBehaviorModal({ device, sensors, onClose, onAdd }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h3 className="text-xl font-bold text-gray-900">Add Automation Rule</h3>
@@ -506,7 +506,7 @@ function AddScheduleModal({ device, onClose, onAdd }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h3 className="text-xl font-bold text-gray-900">Add Schedule</h3>
@@ -654,14 +654,14 @@ export default function ConfigurationScreen() {
                 key={device._id}
                 onClick={() => setSelectedDevice(device)}
                 className={`w-full text-left p-4 rounded-lg transition ${selectedDevice?._id === device._id
-                    ? 'bg-indigo-50 border-2 border-indigo-600'
-                    : 'bg-white border border-gray-200 hover:border-indigo-300'
+                  ? 'bg-indigo-50 border-2 border-indigo-600'
+                  : 'bg-white border border-gray-200 hover:border-indigo-300'
                   }`}
               >
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${device.status === 'online'
-                      ? 'bg-green-100 text-green-600'
-                      : 'bg-red-100 text-red-600'
+                    ? 'bg-green-100 text-green-600'
+                    : 'bg-red-100 text-red-600'
                     }`}>
                     <Settings className="w-5 h-5" />
                   </div>
@@ -699,8 +699,8 @@ export default function ConfigurationScreen() {
                 <button
                   onClick={() => setActiveTab('auto-behavior')}
                   className={`flex items-center gap-2 px-4 py-2 font-medium transition border-b-2 ${activeTab === 'auto-behavior'
-                      ? 'text-indigo-600 border-indigo-600'
-                      : 'text-gray-600 border-transparent hover:text-gray-900'
+                    ? 'text-indigo-600 border-indigo-600'
+                    : 'text-gray-600 border-transparent hover:text-gray-900'
                     }`}
                 >
                   <Zap className="w-4 h-4" />
@@ -709,8 +709,8 @@ export default function ConfigurationScreen() {
                 <button
                   onClick={() => setActiveTab('schedules')}
                   className={`flex items-center gap-2 px-4 py-2 font-medium transition border-b-2 ${activeTab === 'schedules'
-                      ? 'text-indigo-600 border-indigo-600'
-                      : 'text-gray-600 border-transparent hover:text-gray-900'
+                    ? 'text-indigo-600 border-indigo-600'
+                    : 'text-gray-600 border-transparent hover:text-gray-900'
                     }`}
                 >
                   <Clock className="w-4 h-4" />

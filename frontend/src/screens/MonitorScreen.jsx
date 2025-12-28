@@ -177,6 +177,9 @@ export default function MonitorScreen() {
         updatedDevice.characteristic
       );
 
+
+      //console.log(updatedDevice.characteristic)
+
       if (result.success) {
         // Update local state
         setDevices(prev => ({
@@ -222,6 +225,7 @@ export default function MonitorScreen() {
       console.error('Error toggling device status:', error);
     }
   };
+
 
   // Calculate stats from real data
   const calculateStats = () => {

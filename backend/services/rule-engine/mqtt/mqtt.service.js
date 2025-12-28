@@ -29,7 +29,7 @@ export async function handleSensorMessage(message) {
     const timestamp = Date.now();
 
     //writeSensorPoint({ homeId, name, measure, value, timestamp });
-    await evaluateRules({ homeId, measure, value });
+    //await evaluateRules({ homeId, measure, value });
 
     io.emit("sensor:update", {
       homeId, name, measure, value, timestamp
