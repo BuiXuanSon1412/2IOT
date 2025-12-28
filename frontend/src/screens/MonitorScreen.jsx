@@ -19,6 +19,7 @@ export default function MonitorScreen() {
     fetchData();
   }, []);
 
+
   const fetchData = async () => {
     setLoading(true);
     setError(null);
@@ -374,13 +375,13 @@ export default function MonitorScreen() {
         <StatCard
           icon={<Thermometer className="w-5 h-5" />}
           label="Avg Temperature"
-          value={`${stats.avgTemp}°C`}
+          value={`25°C`}
           status="optimal"
         />
         <StatCard
           icon={<Droplets className="w-5 h-5" />}
           label="Avg Humidity"
-          value={`${stats.avgHumidity}%`}
+          value={`65%`}
           status="optimal"
         />
         <StatCard

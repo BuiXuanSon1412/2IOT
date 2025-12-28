@@ -3,12 +3,16 @@ import { Plus, Trash2, X, AlertCircle, Clock, Zap, Settings } from 'lucide-react
 import apiService from '../services/apiService';
 
 // ============= AUTO-BEHAVIOR CONFIGURATION =============
-function AutoBehaviorTab({ device }) {
-  const [rules, setRules] = useState(device.settings?.autoBehavior || []);
+function AutoBehaviorTab({ device, onDeviceUpdated }) {
+  const [rules, setRules] = useState([]);
   const [showAddRule, setShowAddRule] = useState(false);
   const [sensors, setSensors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    setRules(device.settings?.autoBehavior || []);
+  }, [device]);
 
   useEffect(() => {
     fetchSensors();
@@ -35,6 +39,7 @@ function AutoBehaviorTab({ device }) {
 
       if (result.success) {
         setRules([...rules, newRule]);
+        onDeviceUpdated(result.data)
         setShowAddRule(false);
       } else {
         setError(result.error);
@@ -76,6 +81,8 @@ function AutoBehaviorTab({ device }) {
     }
   };
 
+  console.log(device.name)
+  console.log(rules)
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -175,10 +182,16 @@ function AutoBehaviorTab({ device }) {
 
 // ============= SCHEDULE CONFIGURATION =============
 function ScheduleTab({ device }) {
-  const [schedules, setSchedules] = useState(device.settings?.schedules || []);
+  const [schedules, setSchedules] = useState();
   const [showAddSchedule, setShowAddSchedule] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    setRules(device.settings?.autoBehavior || []);
+  }, [device]);
+
+
 
   const handleAddSchedule = async (newSchedule) => {
     setLoading(true);
@@ -719,7 +732,12 @@ export default function ConfigurationScreen() {
               </div>
 
               <div className="mt-4">
-                {activeTab === 'auto-behavior' && <AutoBehaviorTab device={selectedDevice} />}
+                {activeTab === 'auto-behavior' && <AutoBehaviorTab device={selectedDevice} onDeviceUpdated={(updatedDevice) => {
+                  setDevices(prev =>
+                    prev.map(d => d._id === updatedDevice._id ? updatedDevice : d)
+                  );
+                  setSelectedDevice(updatedDevice);
+                }} />}
                 {activeTab === 'schedules' && <ScheduleTab device={selectedDevice} />}
               </div>
             </div>
