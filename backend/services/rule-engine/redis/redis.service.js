@@ -106,26 +106,26 @@ function expandCron(cronExpression) {
 }
 
 export async function cacheScheduleRule({
-    homeId,
-    name,
-    cronExpression,
-    action
+  homeId,
+  name,
+  cronExpression,
+  action
 }) {
-    const { minutes, hours, daysOfMonth, daysOfWeek } =
-        expandCron(cronExpression);
+  const { minutes, hours, daysOfMonth, daysOfWeek } =
+    expandCron(cronExpression);
 
-    for (const m of minutes)
-        for (const h of hours)
-            for (const dom of daysOfMonth)
-                for (const dow of daysOfWeek) {
-                    const key = `schedule:${m}:${h}:${dow}:${dom}`;
-                    await redis.rPush(key, JSON.stringify({
-                        homeId,
-                        name,
-                        cronExpression,
-                        action
-                    }));
-                }
+  for (const m of minutes)
+    for (const h of hours)
+      for (const dom of daysOfMonth)
+        for (const dow of daysOfWeek) {
+          const key = `schedule:${m}:${h}:${dow}:${dom}`;
+          await redis.rPush(key, JSON.stringify({
+            homeId,
+            name,
+            cronExpression,
+            action
+          }));
+        }
 }
 
 export async function removeScheduleRule({

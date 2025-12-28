@@ -244,14 +244,14 @@ function FanControl({ device, onUpdate, onToggle, isUpdating }) {
             </span>
           </div>
           <div className="grid grid-cols-6 gap-2">
-            {[80, 120, 160, 200].map((speedLevel) => (
+            {[70, 80, 90, 100].map((speedLevel) => (
               <button
                 key={speedLevel}
                 onClick={() => updateCharacteristic({ 'Fan speed': speedLevel })}
                 disabled={isUpdating || !isPowered}
                 className={`py-3 px-2 rounded-lg font-medium transition ${currentSpeed === speedLevel
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
               >
                 {speedLevel === 0 ? '0' : speedLevel}
@@ -375,10 +375,11 @@ function LightControl({ device, onUpdate, onToggle, isUpdating }) {
             onChange={(e) => updateCharacteristic({ 'Light level': parseInt(e.target.value) })}
             disabled={isUpdating || !isPowered}
             className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-500`}
+
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
             <span>0</span>
-            <span>100</span>
+            <span>255</span>
           </div>
         </div>
 
@@ -387,10 +388,11 @@ function LightControl({ device, onUpdate, onToggle, isUpdating }) {
           <label className="block text-sm font-medium text-gray-700 mb-2">Quick Presets</label>
           <div className="grid grid-cols-4 gap-2">
             {[
-              { label: 'Max', val: 100 },
-              { label: 'Bright', val: 75 },
-              { label: 'Dim', val: 50 },
-              { label: 'Night', val: 25 }
+              { label: 'Night', val: 50 },
+              { label: 'Dim', val: 100 },
+              { label: 'Bright', val: 175 },
+              { label: 'Max', val: 255 },
+
             ].map((preset) => (
               <button
                 key={preset.label}
@@ -570,21 +572,19 @@ function DHT22Sensor({ sensor }) {
       {/* Status Indicators */}
       <div className="grid grid-cols-2 gap-4">
         <div
-          className={`p-4 rounded-xl ${
-            temperature >= 18 && temperature <= 26
-              ? "bg-green-50 border border-green-200"
-              : "bg-yellow-50 border border-yellow-200"
-          }`}
+          className={`p-4 rounded-xl ${temperature >= 18 && temperature <= 26
+            ? "bg-green-50 border border-green-200"
+            : "bg-yellow-50 border border-yellow-200"
+            }`}
         >
           <p className="text-sm font-medium text-gray-700">
             Temperature Status
           </p>
           <p
-            className={`font-semibold ${
-              temperature >= 18 && temperature <= 26
-                ? "text-green-600"
-                : "text-yellow-600"
-            }`}
+            className={`font-semibold ${temperature >= 18 && temperature <= 26
+              ? "text-green-600"
+              : "text-yellow-600"
+              }`}
           >
             {temperature >= 18 && temperature <= 26
               ? "Optimal"
@@ -593,21 +593,19 @@ function DHT22Sensor({ sensor }) {
         </div>
 
         <div
-          className={`p-4 rounded-xl ${
-            humidity >= 40 && humidity <= 60
-              ? "bg-green-50 border border-green-200"
-              : "bg-yellow-50 border border-yellow-200"
-          }`}
+          className={`p-4 rounded-xl ${humidity >= 40 && humidity <= 60
+            ? "bg-green-50 border border-green-200"
+            : "bg-yellow-50 border border-yellow-200"
+            }`}
         >
           <p className="text-sm font-medium text-gray-700">
             Humidity Status
           </p>
           <p
-            className={`font-semibold ${
-              humidity >= 40 && humidity <= 60
-                ? "text-green-600"
-                : "text-yellow-600"
-            }`}
+            className={`font-semibold ${humidity >= 40 && humidity <= 60
+              ? "text-green-600"
+              : "text-yellow-600"
+              }`}
           >
             {humidity >= 40 && humidity <= 60
               ? "Optimal"

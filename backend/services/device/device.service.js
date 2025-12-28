@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Device from "../../models/Device.js";
 import { publishControlCommand } from "../rule-engine/mqtt/mqtt.service.js";
-import { cacheScheduleRule, removeScheduleRule, buildRedisRule } from "../rule-engine/redis/redis.service.js";
+import { cacheScheduleRule, removeScheduleRule, buildRedisRule, removeRuleFromRedis, addRuleToRedis } from "../rule-engine/redis/redis.service.js";
 
 export const getDeviceById = async (deviceId) => {
     const device = await Device.findById({ deviceId });
@@ -53,6 +53,7 @@ export const removeDevicesById = async (ids) => {
     return await Device.deleteMany({ _id: { $in: ids } });
 }
 
+
 export const updateDeviceStatusById = async (_id, newStatus) => {
     if (!["online", "offline"].includes(newStatus)) {
         throw new Error("Invalid status");
@@ -73,6 +74,7 @@ export const updateDeviceStatusById = async (_id, newStatus) => {
 
     return device;
 }
+
 
 export const updateDevicePinByName = async (name, newPin) => {
     const device = await Device.findOneAndUpdate(
@@ -114,33 +116,16 @@ export const updateCharacteristicById = async (_id, userId, characteristics) => 
         current.map(c => [c.name, c])
     );
 
-    for (const incoming of theChars) {
-        if (!incoming?.name) continue;
-
-        if (map.has(incoming.name)) {
-            const existing = map.get(incoming.name);
-
-            if (incoming.value !== undefined) {
-                existing.value = String(incoming.value);
-            }
-
-            if (incoming.unit !== undefined) {
-                existing.unit = incoming.unit;
-            }
-        } else {
-            map.set(incoming.name, {
-                name: incoming.name,
-                unit: incoming.unit ?? null,
-                value: String(incoming.value ?? "")
-            });
-        }
-    }
-
-    device.characteristic = Array.from(map.values());
-
-    await device.save();
-    return device;
+  await device.save();
+  //console.log(device)
+  for (const char of device.characteristic) {
+    const action = [{ name: char.name, value: char.value }];
+    publishControlCommand(device.homeId, device.name, action);
+  }
+  return device;
 };
+
+
 
 export const updateUserPermissionOnDevice = async (userId, name, permissionLevel) => {
     if (!["configurable", "control"].includes(permissionLevel)) {
