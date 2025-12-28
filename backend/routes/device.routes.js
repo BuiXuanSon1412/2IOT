@@ -76,7 +76,7 @@ router.get('/', authenticate, fetchAllDevices);
  * @example Response 403
  * { "message": "Forbidden" }
  */
-router.post('/', authenticate, authorize('admin'), addListOfDevices);
+router.post('/', authenticate, authorize('admin'), addListOfDevices); 
 
 /**
  * @route DELETE /api/devices
@@ -116,7 +116,7 @@ router.delete('/', authenticate, authorize('admin'), deleteDevices);
  * @example Response 400
  * { "message": "Device id and new status are required" }
  */
-router.patch('/status', authenticate, toggleDeviceStatus);
+router.patch('/status', authenticate, toggleDeviceStatus);  
 
 /**
  * @route PATCH /api/devices/permission
