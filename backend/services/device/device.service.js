@@ -185,21 +185,21 @@ export const addAutoBehavior = async (name, measure, range, action) => {
         range,
         action: theActions
     };
-    const redisRule = buildRedisRule(rule);
+    // const redisRule = buildRedisRule(rule);
 
-    const exists = device.settings.autoBehavior.some(r =>
-        buildRedisRule({ ...r.toObject(), name }) === redisRule
-    );
+    // const exists = device.settings.autoBehavior.some(r =>
+    //     buildRedisRule({ ...r.toObject(), name }) === redisRule
+    // );
 
-    if (exists) throw new Error("Duplicate auto behavior rule");
+    // if (exists) throw new Error("Duplicate auto behavior rule");
 
     device.settings.autoBehavior.push({ measure, range, action });
     await device.save();
 
     await addRuleToRedis({
         homeId: device.homeId.toString(),
-        measure,
-        rule: redisRule
+        device: device,
+        rule: rule
     });
 
     return device;
@@ -209,12 +209,14 @@ export const removeAutoBehavior = async (name, measure, range, action) => {
     const device = await Device.findOne({ name: name });
     if (!device) throw new Error("Device not found");
 
-    const redisRule = buildRedisRule({
+    const rule = {
         name,
         measure,
         range,
         action
-    });
+    };
+
+    const redisRule = buildRedisRule(rule);
 
     device.settings.autoBehavior = device.settings.autoBehavior.filter(r =>
         buildRedisRule({ ...r.toObject(), name }) !== redisRule
@@ -224,8 +226,8 @@ export const removeAutoBehavior = async (name, measure, range, action) => {
 
     await removeRuleFromRedis({
         homeId: device.homeId.toString(),
-        measure,
-        rule: redisRule
+        device: device,
+        rule: rule
     });
 
     return device;

@@ -2,6 +2,23 @@ import { getRedisClient } from "../../../config/redis.js";
 import Device from "../../../models/Device.js";
 import { executeOnce } from "../rule/rule.service.js";
 
+async function flushRuleKeys(redis) {
+  let cursor = "0";
+
+  do {
+    const { cursor: nextCursor, keys } = await redis.scan(cursor, {
+      MATCH: "rules:*",
+      COUNT: 100
+    });
+
+    cursor = nextCursor;
+
+    if (keys.length > 0) {
+      await redis.del(keys);
+    }
+  } while (cursor !== "0");
+}
+
 export async function loadRulesIntoRedis() {
     const redis = getRedisClient();
 
@@ -9,21 +26,25 @@ export async function loadRulesIntoRedis() {
         "settings.autoBehavior.0": { $exists: true }
     }).lean();
 
+    flushRuleKeys(redis);
+
     for (const device of devices) {
         const homeId = device.homeId.toString();
 
         for (const rule of device.settings.autoBehavior) {
-            const redisKey = `rules:${homeId}:${rule.measure}`;
+            // const redisKey = `rules:${homeId}:${rule.measure}`;
 
-            const ruleEntry = {
-                name: device.name,
-                range: rule.range,
-                action: rule.action,
-                cooldownMs: process.env.RULE_COOLDOWN || 30000,
-                lastTriggeredAt: 0
-            };
+            // const ruleEntry = {
+            //     name: device.name,
+            //     range: rule.range,
+            //     action: rule.action,
+            //     cooldownMs: process.env.RULE_COOLDOWN || 30000,
+            //     lastTriggeredAt: 0
+            // };
 
-            await redis.rPush(redisKey, JSON.stringify(ruleEntry));
+            // await redis.rPush(redisKey, JSON.stringify(ruleEntry));
+            if (!device.name || rule.action == undefined || !homeId) continue;
+            addRuleToRedis({ homeId: homeId, device: device, rule: rule });
         }
     }
 
@@ -77,16 +98,37 @@ export function buildRedisRule({ deviceName, measure, range, action }) {
     });
 }
 
-export async function addRuleToRedis({ homeId, measure, rule }) {
+export async function addRuleToRedis({ homeId, device, rule }) {
     const redis = getRedisClient();
-    const key = `rules:${homeId}:${measure}`;
-    await redis.rPush(key, rule);
+    // const key = `rules:${homeId}:${measure}`;
+    // await redis.rPush(key, rule);
+    const redisKey = `rules:${homeId}:${rule.measure}`;
+
+    const ruleEntry = {
+        name: device.name,
+        range: rule.range,
+        action: rule.action,
+        cooldownMs: process.env.RULE_COOLDOWN || 30000,
+        lastTriggeredAt: 0
+    };
+    console.log(ruleEntry);
+    const added = await redis.rPush(redisKey, JSON.stringify(ruleEntry));
+    console.log("Added count:", added);
 }
 
-export async function removeRuleFromRedis({ homeId, measure, rule }) {
+export async function removeRuleFromRedis({ homeId, device, rule }) {
     const redis = getRedisClient();
-    const key = `rules:${homeId}:${measure}`;
-    await redis.lRem(key, 0, rule);
+    const key = `rules:${homeId}:${rule.measure}`;
+
+    const ruleEntry = {
+      name: device.name,
+      range: rule.range,
+      action: rule.action,
+      cooldownMs: process.env.RULE_COOLDOWN || 30000,
+      lastTriggeredAt: 0
+    }
+    const removed = await redis.lRem(key, 0, JSON.stringify(ruleEntry));
+    console.log("Removed count:", removed);
 }
 
 function parseField(field, min, max) {
